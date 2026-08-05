@@ -8,13 +8,12 @@ export default function LandingPage() {
       <main className="flex flex-1 flex-col">
         <section className="flex flex-1 flex-col items-center justify-center px-4 py-24 text-center">
           <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl">
-            Build faster with{" "}
-            <span className="text-primary">TemplateStack</span>
+            Manage your pharmacy with{" "}
+            <span className="text-primary">PharmacyApp</span>
           </h1>
           <p className="text-muted-foreground mt-6 max-w-2xl text-lg">
-            A production-ready fullstack starter template with authentication,
-            database, and a modern UI — so you can focus on building your
-            product.
+            Track your medicine inventory, record sales, monitor income, and
+            view reports — all in one simple dashboard built for your pharmacy.
           </p>
           <div className="mt-10 flex gap-4">
             <Link
@@ -24,11 +23,10 @@ export default function LandingPage() {
               Get Started
             </Link>
             <Link
-              href="https://github.com/BemnetMussa/TemplateStack"
-              target="_blank"
+              href="/login"
               className="border-input bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-11 items-center rounded-md border px-8 text-sm font-medium transition-colors"
             >
-              GitHub
+              Log In
             </Link>
           </div>
         </section>
@@ -40,24 +38,24 @@ export default function LandingPage() {
             </h2>
             <div className="grid gap-8 md:grid-cols-3">
               <div className="rounded-lg border p-6">
-                <h3 className="mb-2 text-lg font-semibold">Authentication</h3>
+                <h3 className="mb-2 text-lg font-semibold">Inventory</h3>
                 <p className="text-muted-foreground text-sm">
-                  Email/password auth with BetterAuth. Session management,
-                  protected routes, and middleware included.
+                  Keep track of all your medicines — quantities, prices,
+                  categories, and expiry dates with low-stock alerts.
                 </p>
               </div>
               <div className="rounded-lg border p-6">
-                <h3 className="mb-2 text-lg font-semibold">Database Ready</h3>
+                <h3 className="mb-2 text-lg font-semibold">Sales & Income</h3>
                 <p className="text-muted-foreground text-sm">
-                  PostgreSQL with Prisma ORM. Type-safe database access with
-                  migrations and a clean schema.
+                  Record sales in seconds with automatic totals and stock
+                  updates. Log any other income your pharmacy earns.
                 </p>
               </div>
               <div className="rounded-lg border p-6">
-                <h3 className="mb-2 text-lg font-semibold">Modern UI</h3>
+                <h3 className="mb-2 text-lg font-semibold">Reports</h3>
                 <p className="text-muted-foreground text-sm">
-                  TailwindCSS and shadcn/ui components. Dark mode support,
-                  responsive layouts, and accessible design.
+                  See your revenue trends, best-selling medicines, and monthly
+                  summaries with clear visual charts.
                 </p>
               </div>
             </div>
@@ -68,7 +66,7 @@ export default function LandingPage() {
       <footer className="border-t py-6">
         <div className="container mx-auto px-4 text-center">
           <p className="text-muted-foreground text-sm">
-            Built with Next.js, Prisma, BetterAuth, and shadcn/ui.
+            PharmacyApp — built for your pharmacy.
           </p>
         </div>
       </footer>
