@@ -16,13 +16,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import Link from "next/link";
 
 export function SignupForm() {
@@ -55,7 +48,7 @@ export function SignupForm() {
         return;
       }
 
-      router.push("/dashboard");
+      router.push("/sales");
       router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
@@ -65,12 +58,20 @@ export function SignupForm() {
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Create an account</CardTitle>
-        <CardDescription>Get started with TemplateStack</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <div className="w-full max-w-md space-y-8">
+      <div className="space-y-3 text-center">
+        <div className="bg-primary text-primary-foreground mx-auto flex size-12 items-center justify-center rounded-xl text-xl font-bold">
+          +
+        </div>
+        <h1 className="text-primary text-3xl font-bold tracking-tight">
+          leyuMed
+        </h1>
+        <p className="text-muted-foreground text-sm">
+          Create your account to continue
+        </p>
+      </div>
+
+      <div className="space-y-4">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {error && (
@@ -86,7 +87,7 @@ export function SignupForm() {
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} />
+                    <Input placeholder="Your name" className="h-12" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -103,6 +104,7 @@ export function SignupForm() {
                     <Input
                       type="email"
                       placeholder="you@example.com"
+                      className="h-12"
                       {...field}
                     />
                   </FormControl>
@@ -118,26 +120,31 @@ export function SignupForm() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="********" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="********"
+                      className="h-12"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="h-12 w-full" disabled={loading}>
               {loading ? "Creating account..." : "Sign up"}
             </Button>
           </form>
         </Form>
 
-        <div className="mt-4 text-center text-sm">
+        <p className="text-center text-sm">
           Already have an account?{" "}
           <Link href="/login" className="text-primary hover:underline">
             Sign in
           </Link>
-        </div>
-      </CardContent>
-    </Card>
+        </p>
+      </div>
+    </div>
   );
 }

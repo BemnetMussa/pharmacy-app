@@ -8,20 +8,26 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 
-const sidebarLinks = [
-  { href: "/dashboard", label: "Overview" },
-  { href: "/medicines", label: "Medicines" },
-  { href: "/sales", label: "Sales" },
-  { href: "/income", label: "Income" },
-  { href: "/reports", label: "Reports" },
+export type NavRole = "ADMIN" | "PHARMACIST";
+
+const allLinks: ReadonlyArray<{
+  href: string;
+  label: string;
+  roles: ReadonlyArray<NavRole>;
+}> = [
+  { href: "/dashboard", label: "Overview", roles: ["ADMIN"] },
+  { href: "/medicines", label: "Medicines", roles: ["ADMIN", "PHARMACIST"] },
+  { href: "/sales", label: "Sales", roles: ["ADMIN", "PHARMACIST"] },
+  { href: "/reports", label: "Reports", roles: ["ADMIN"] },
 ];
 
-function SidebarNav() {
+function SidebarNav({ role }: { role: NavRole }) {
   const pathname = usePathname();
+  const links = allLinks.filter((l) => l.roles.includes(role));
 
   return (
     <nav className="flex flex-col gap-1">
-      {sidebarLinks.map((link) => (
+      {links.map((link) => (
         <Link
           key={link.href}
           href={link.href}
@@ -39,18 +45,18 @@ function SidebarNav() {
   );
 }
 
-export function Sidebar() {
+export function Sidebar({ role }: { role: NavRole }) {
   return (
     <aside className="hidden w-64 shrink-0 border-r md:block">
       <div className="flex h-full flex-col gap-4 p-4">
-        <div className="text-sm font-semibold tracking-tight">Navigation</div>
-        <SidebarNav />
+        <div className="text-sm font-semibold tracking-tight">leyuMed</div>
+        <SidebarNav role={role} />
       </div>
     </aside>
   );
 }
 
-export function MobileSidebar() {
+export function MobileSidebar({ role }: { role: NavRole }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -65,10 +71,8 @@ export function MobileSidebar() {
       </SheetTrigger>
       <SheetContent side="left" className="w-64 p-4">
         <div className="flex flex-col gap-4 pt-4">
-          <div className="text-sm font-semibold tracking-tight">
-            Navigation
-          </div>
-          <SidebarNav />
+          <div className="text-sm font-semibold tracking-tight">leyuMed</div>
+          <SidebarNav role={role} />
         </div>
       </SheetContent>
     </Sheet>

@@ -31,6 +31,8 @@ import { Badge } from "@/components/ui/badge";
 import { createSale } from "@/features/sales/actions";
 import { saleSchema } from "@/features/sales/validators";
 import type { SaleInput } from "@/features/sales/validators";
+import { formatMoney } from "@/lib/utils";
+import { Check } from "lucide-react";
 
 type Sale = {
   id: string;
@@ -56,7 +58,7 @@ function SaleForm({
   onCancel,
 }: {
   medicines: Medicine[];
-  onSave: () => void;
+  onSave: (result: { sale: Sale; stockLeft: number }) => void;
   onCancel: () => void;
 }) {
   const [selectedMed, setSelectedMed] = useState<Medicine | null>(null);
@@ -84,8 +86,15 @@ function SaleForm({
 
     startTransition(async () => {
       try {
-        await createSale(result.data);
-        onSave();
+        const created = await createSale(result.data);
+        if (!selectedMed) return;
+        onSave({
+          sale: {
+            ...created,
+            medicine: { name: selectedMed.name, unit: selectedMed.unit },
+          },
+          stockLeft: selectedMed.quantity - result.data.quantity,
+        });
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to record sale");
       }
@@ -101,9 +110,10 @@ function SaleForm({
           onValueChange={(val) => {
             const med = medicines.find((m) => m.id === val) ?? null;
             setSelectedMed(med);
+            setQty(1);
           }}
         >
-          <SelectTrigger>
+          <SelectTrigger className="h-12">
             <SelectValue placeholder="Select a medicine…" />
           </SelectTrigger>
           <SelectContent>
@@ -125,23 +135,24 @@ function SaleForm({
         <Input
           id="qty"
           type="number"
+          inputMode="numeric"
           min={1}
           max={selectedMed?.quantity}
+          className="h-12"
           value={qty}
           onChange={(e) => setQty(Math.max(1, Number(e.target.value)))}
         />
         {selectedMed && (
           <p className="text-muted-foreground text-xs">
-            Max available: {selectedMed.quantity} {selectedMed.unit}
+            {selectedMed.quantity} {selectedMed.unit} in stock
           </p>
         )}
       </div>
 
       {selectedMed && (
-        <div className="bg-muted rounded-md px-3 py-2 text-sm">
-          Unit price: <strong>${selectedMed.unitPrice.toFixed(2)}</strong>
-          {" → "}
-          Total: <strong>${total.toFixed(2)}</strong>
+        <div className="bg-muted flex items-center justify-between rounded-md px-3 py-2 text-sm">
+          <span className="text-muted-foreground">Line total</span>
+          <span className="text-lg font-bold">{formatMoney(total)}</span>
         </div>
       )}
 
@@ -156,11 +167,63 @@ function SaleForm({
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" disabled={pending || !selectedMed}>
-          {pending ? "Saving…" : "Record Sale"}
+        <Button
+          type="submit"
+          className="h-12"
+          disabled={pending || !selectedMed}
+        >
+          {pending
+            ? "Saving…"
+            : selectedMed
+              ? `Confirm sale · ${formatMoney(total)}`
+              : "Record Sale"}
         </Button>
       </div>
     </form>
+  );
+}
+
+function SaleSuccess({
+  sale,
+  stockLeft,
+  onDone,
+  onAnother,
+}: {
+  sale: Sale;
+  stockLeft: number;
+  onDone: () => void;
+  onAnother: () => void;
+}) {
+  return (
+    <div className="space-y-6 py-2 text-center">
+      <div className="bg-success/10 text-success mx-auto flex size-12 items-center justify-center rounded-full">
+        <Check className="size-6" aria-hidden />
+      </div>
+      <div className="space-y-1">
+        <h3 className="text-xl font-bold">Sale recorded</h3>
+        <p className="text-muted-foreground text-sm">
+          {sale.medicine.name} · {sale.quantity} {sale.medicine.unit} ·{" "}
+          {formatMoney(sale.totalAmount)}
+        </p>
+      </div>
+      <div className="border-t pt-4">
+        <p className="text-sm">
+          <strong>{stockLeft}</strong> {sale.medicine.unit} left in stock
+        </p>
+      </div>
+      <div className="space-y-2">
+        <Button className="h-12 w-full" onClick={onDone}>
+          Done
+        </Button>
+        <Button
+          variant="ghost"
+          className="text-primary w-full"
+          onClick={onAnother}
+        >
+          Record another
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -180,6 +243,7 @@ export function SalesClient({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [addOpen, setAddOpen] = useState(false);
+  const [success, setSuccess] = useState<{ sale: Sale; stockLeft: number } | null>(null);
   const [, startTransition] = useTransition();
 
   const filteredTotal = sales.reduce((sum, s) => sum + s.totalAmount, 0);
@@ -201,8 +265,13 @@ export function SalesClient({
     startTransition(() => router.push("/sales"));
   }
 
+  function handleSaved(result: { sale: Sale; stockLeft: number }) {
+    setSuccess(result);
+    router.refresh();
+  }
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-16 md:pb-0">
       {/* Summary cards */}
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
@@ -212,7 +281,7 @@ export function SalesClient({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">${todayRevenue.toFixed(2)}</p>
+            <p className="text-2xl font-bold">{formatMoney(todayRevenue)}</p>
           </CardContent>
         </Card>
         <Card>
@@ -222,7 +291,7 @@ export function SalesClient({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">${filteredTotal.toFixed(2)}</p>
+            <p className="text-2xl font-bold">{formatMoney(filteredTotal)}</p>
             <p className="text-muted-foreground text-xs">
               {sales.length} transaction{sales.length !== 1 ? "s" : ""}
             </p>
@@ -250,7 +319,10 @@ export function SalesClient({
             </Button>
           )}
         </form>
-        <Button className="ml-auto" onClick={() => setAddOpen(true)}>
+        <Button
+          className="ml-auto hidden md:inline-flex"
+          onClick={() => setAddOpen(true)}
+        >
           Record Sale
         </Button>
       </div>
@@ -275,7 +347,7 @@ export function SalesClient({
                   colSpan={6}
                   className="text-muted-foreground py-8 text-center"
                 >
-                  No sales found. Record your first sale.
+                  No sales yet this shift — the first one starts the queue.
                 </TableCell>
               </TableRow>
             ) : (
@@ -289,10 +361,10 @@ export function SalesClient({
                   </TableCell>
                   <TableCell className="text-right">{sale.quantity}</TableCell>
                   <TableCell className="text-right">
-                    ${sale.unitPrice.toFixed(2)}
+                    {formatMoney(sale.unitPrice)}
                   </TableCell>
                   <TableCell className="text-right font-medium">
-                    ${sale.totalAmount.toFixed(2)}
+                    {formatMoney(sale.totalAmount)}
                   </TableCell>
                   <TableCell>
                     {new Date(sale.soldAt).toLocaleString()}
@@ -307,6 +379,13 @@ export function SalesClient({
         </Table>
       </div>
 
+      {/* Mobile sticky CTA — sits above bottom nav */}
+      <div className="bg-background fixed inset-x-0 bottom-[57px] z-40 border-t p-3 md:hidden">
+        <Button className="h-12 w-full text-base" onClick={() => setAddOpen(true)}>
+          Record sale
+        </Button>
+      </div>
+
       {/* Record Sale Dialog */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="max-w-md">
@@ -315,12 +394,29 @@ export function SalesClient({
           </DialogHeader>
           <SaleForm
             medicines={medicines}
-            onSave={() => {
-              setAddOpen(false);
-              router.refresh();
-            }}
+            onSave={handleSaved}
             onCancel={() => setAddOpen(false)}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Sale Success Dialog */}
+      <Dialog
+        open={!!success}
+        onOpenChange={(open) => !open && setSuccess(null)}
+      >
+        <DialogContent className="max-w-sm">
+          {success && (
+            <SaleSuccess
+              sale={success.sale}
+              stockLeft={success.stockLeft}
+              onDone={() => setSuccess(null)}
+              onAnother={() => {
+                setSuccess(null);
+                setAddOpen(true);
+              }}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>

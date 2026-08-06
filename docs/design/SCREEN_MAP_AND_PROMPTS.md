@@ -32,31 +32,38 @@ When she opens the app after a busy day, she can answer: *What do we have? What 
 
 | Area | Primary user | Design bias |
 |------|--------------|-------------|
-| Overview + Reports | Owner | Clear answers, alerts (low/out of stock, money totals), low clutter |
-| Medicines + Sales (+ Income entry) | Staff | Fast recording, obvious primary actions, tables for confirmation |
-| Income list / money views | Owner (review) + Staff (enter) | Audit-friendly: dates, descriptions, amounts — no mystery totals |
+| Overview + Reports | Admin (sister) | Clear answers, alerts (low/out of stock, sales totals), low clutter |
+| Medicines (CRUD) + Sales history | Admin | Full stock control + sell when on counter |
+| Medicines browse + Record sale | Pharmacist | Speed, sell price + qty only, hard to mess up |
 
-**MVP auth note:** Same login + same screens for everyone at first (no separate “owner portal” yet). Mentally design for both personas. Strict **roles/permissions** (staff can’t delete history, owner-only reports, etc.) = later freeze — do not block Stitch on it.
+**Brand:** **leyuMed** · primary `#1E6FD9` · soft `#E8F1FC` · bg `#F5F8FC` · DM Sans  
+**MVP auth:** Shared login; **hard RBAC** after auth — different home + nav by role.
 
 ### Product freeze (MVP)
 
 | Item | Decision |
 |------|----------|
-| Who | Owner (sister) + staff pharmacists |
-| Core loop | Staff record → owner sees truth without standing at the counter all day |
-| Owner must answer | Stock on hand · what’s low/out · sales out · money in · simple “how are we doing” |
-| Platforms | Desktop first (counter / office), mobile usable for quick owner checks |
-| Auth | Email + password (login / signup already exist); roles later |
-| Out of scope (for now) | Online storefront, Rx workflow, multi-branch, barcode hardware, suppliers CRM, full accounting, strict RBAC |
+| Brand | leyuMed |
+| Who | Administrator (sister / doctor-owner) + hired pharmacists |
+| Core loop | Staff record sales → admin sees truth without standing at the counter all day |
+| Admin must answer | Stock on hand · what’s low/out · sales out · simple “how are we doing” |
+| Pharmacist can | Browse medicines (name, qty, **sell** price — **hide cost**) · record sales · see sales history |
+| Pharmacist cannot | Overview, Reports, cost prices, medicine CRUD |
+| Admin also sells | Yes — same Record sale path as staff when she works the counter |
+| Money model | **Sale = money in.** No separate Income module for MVP |
+| Platforms | **Mobile + desktop** (staff mostly mobile; admin both). Primary mobile artboard **390×844** |
+| Auth | Email + password; role determines nav + home |
+| Nav · Admin | Overview · Medicines · Sales · Reports |
+| Nav · Pharmacist | Medicines · Sales |
+| Out of scope (for now) | Online storefront, Rx workflow, multi-branch, barcode hardware, suppliers CRM, full accounting, separate Income entries |
 
 ### Domain language
 
 | Word | Meaning in this app |
 |------|---------------------|
-| Medicine | Stock item (qty, sell price, cost, expiry) |
-| Sale | Medicine going **out** → reduces stock, records revenue |
-| Income | Manual cash **in** entry (other income not tied to a line item) |
-| Report | Aggregated view over sales / income / stock signals |
+| Medicine | Stock item (qty, sell price, cost, expiry) — cost = admin-only |
+| Sale | Medicine going **out** → reduces stock, records revenue (this is money in) |
+| Report | Aggregated view over sales / stock signals (admin-only) |
 | Low / out of stock | Owner alert — qty at/under threshold or zero |
 
 ---
@@ -70,14 +77,14 @@ When she opens the app after a busy day, she can answer: *What do we have? What 
 | `/dashboard` | `features/reports` | Owner pulse — stock / money / alerts without standing at the counter |
 | `/medicines` | `features/medicines` | Staff: browse / add / edit; Owner: what’s here / low / out |
 | `/sales` | `features/sales` | Staff: record outflow; Owner: see what went out |
-| `/income` | `features/income` | Staff: log cash in; Owner: follow the money |
-| `/reports` | `features/reports` | Owner: deeper “where did we stand this month?” |
+| `/reports` | `features/reports` | Admin only: deeper “where did we stand this month?” |
 
-Shell (every authenticated page):
+Shell (authenticated):
 
-- Top bar: product name, theme toggle, user menu  
-- Side nav: Overview · Medicines · Sales · Income · Reports  
+- Top bar: product name **leyuMed**, theme toggle, user menu  
+- Side / bottom nav by role (see product freeze) — **no Income**  
 - Main: page content only  
+- Pharmacist default home: Sales (Record) · Admin default home: Overview  
 
 Code shell: `src/app/(dashboard)/layout.tsx`, `components/layout/*`
 

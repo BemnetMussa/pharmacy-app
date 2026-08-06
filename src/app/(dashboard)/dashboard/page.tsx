@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { getSession } from "@/server/session";
 import {
   getSummaryStats,
@@ -12,11 +13,17 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { formatMoney } from "@/lib/utils";
+import type { Role } from "@/server/authz";
 
-export const metadata = { title: "Dashboard | PharmacyApp" };
+export const metadata = { title: "Overview | leyuMed" };
 
 export default async function DashboardPage() {
   const session = await getSession();
+  const role = (session?.user as { role?: Role } | undefined)?.role ?? "PHARMACIST";
+  if (role !== "ADMIN") {
+    redirect("/sales");
+  }
   const [stats, dailyRevenue] = await Promise.all([
     getSummaryStats(),
     getDailyRevenueLast30Days(),
@@ -58,7 +65,7 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">
-              ${stats.todayRevenue.toFixed(2)}
+              {formatMoney(stats.todayRevenue)}
             </p>
             <Link
               href="/sales"
@@ -77,7 +84,7 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">
-              ${stats.monthlyRevenue.toFixed(2)}
+              {formatMoney(stats.monthlyRevenue)}
             </p>
             <Link
               href="/reports"

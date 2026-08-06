@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PharmacyApp",
-  description: "Pharmacy management system — inventory, sales, income tracking",
+  title: "leyuMed",
+  description: "leyuMed — pharmacy management: inventory, sales, and reports",
 };
 
 export default function RootLayout({

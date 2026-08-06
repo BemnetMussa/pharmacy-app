@@ -1,7 +1,7 @@
 import { LoginForm } from "@/components/forms/login-form";
 
 export const metadata = {
-  title: "Log in | TemplateStack",
+  title: "Log in | leyuMed",
 };
 
 export default function LoginPage() {

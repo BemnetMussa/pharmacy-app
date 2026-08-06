@@ -1,5 +1,6 @@
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { auth } from "../src/server/auth";
 
 const adapter = new PrismaPg({
   connectionString:
@@ -7,6 +8,21 @@ const adapter = new PrismaPg({
     "postgresql://user:password@localhost:5432/pharmacyapp",
 });
 const db = new PrismaClient({ adapter });
+
+const seedUsers = [
+  {
+    name: "Dr. Amina",
+    email: "admin@leyumed.com",
+    password: "password123",
+    role: "ADMIN" as const,
+  },
+  {
+    name: "Tigist",
+    email: "pharmacist@leyumed.com",
+    password: "password123",
+    role: "PHARMACIST" as const,
+  },
+];
 
 const medicines = [
   { name: "Paracetamol 500mg", category: "Painkillers", quantity: 120, unit: "tablet", unitPrice: 0.5, costPrice: 0.2, expiryDate: new Date("2027-06-01") },
@@ -22,6 +38,26 @@ const medicines = [
 ];
 
 async function main() {
+  for (const u of seedUsers) {
+    const existing = await db.user.findUnique({ where: { email: u.email } });
+    if (existing) {
+      if (existing.role !== u.role) {
+        await db.user.update({
+          where: { id: existing.id },
+          data: { role: u.role },
+        });
+      }
+      continue;
+    }
+    const res = await auth.api.signUpEmail({
+      body: { email: u.email, password: u.password, name: u.name },
+    });
+    await db.user.update({
+      where: { id: res.user.id },
+      data: { role: u.role },
+    });
+  }
+
   const created = [];
   for (const med of medicines) {
     const m = await db.medicine.create({ data: med });

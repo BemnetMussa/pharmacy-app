@@ -44,7 +44,7 @@ import {
 } from "@/features/medicines/actions";
 import { medicineSchema } from "@/features/medicines/validators";
 import type { MedicineInput } from "@/features/medicines/validators";
-import { z } from "zod";
+import { formatMoney } from "@/lib/utils";
 
 type Medicine = {
   id: string;
@@ -53,7 +53,7 @@ type Medicine = {
   quantity: number;
   unit: string;
   unitPrice: number;
-  costPrice: number;
+  costPrice?: number;
   expiryDate: Date | null;
   description: string | null;
 };
@@ -232,12 +232,15 @@ export function MedicinesClient({
   categories,
   searchQuery,
   selectedCategory,
+  role,
 }: {
   medicines: Medicine[];
   categories: string[];
   searchQuery: string;
   selectedCategory: string;
+  role: "ADMIN" | "PHARMACIST";
 }) {
+  const isAdmin = role === "ADMIN";
   const router = useRouter();
   const searchParams = useSearchParams();
   const [addOpen, setAddOpen] = useState(false);
@@ -307,7 +310,7 @@ export function MedicinesClient({
           </SelectContent>
         </Select>
 
-        <Button onClick={() => setAddOpen(true)}>Add Medicine</Button>
+        {isAdmin && <Button onClick={() => setAddOpen(true)}>Add Medicine</Button>}
       </div>
 
       {/* Table */}
@@ -320,20 +323,20 @@ export function MedicinesClient({
               <TableHead className="text-right">Qty</TableHead>
               <TableHead>Unit</TableHead>
               <TableHead className="text-right">Sale Price</TableHead>
-              <TableHead className="text-right">Cost Price</TableHead>
+              {isAdmin && <TableHead className="text-right">Cost Price</TableHead>}
               <TableHead>Expiry</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              {isAdmin && <TableHead className="text-right">Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {medicines.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={9}
+                  colSpan={isAdmin ? 9 : 7}
                   className="text-muted-foreground py-8 text-center"
                 >
-                  No medicines found. Add your first medicine.
+                  No medicines found.{isAdmin ? " Add your first medicine." : ""}
                 </TableCell>
               </TableRow>
             ) : (
@@ -348,11 +351,13 @@ export function MedicinesClient({
                     <TableCell className="text-right">{med.quantity}</TableCell>
                     <TableCell>{med.unit}</TableCell>
                     <TableCell className="text-right">
-                      ${med.unitPrice.toFixed(2)}
+                      {formatMoney(med.unitPrice)}
                     </TableCell>
-                    <TableCell className="text-right">
-                      ${med.costPrice.toFixed(2)}
-                    </TableCell>
+                    {isAdmin && (
+                      <TableCell className="text-right">
+                        {formatMoney(med.costPrice ?? 0)}
+                      </TableCell>
+                    )}
                     <TableCell>
                       {med.expiryDate
                         ? new Date(med.expiryDate).toLocaleDateString()
@@ -373,25 +378,27 @@ export function MedicinesClient({
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setEditMedicine(med)}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => setDeleteTarget(med)}
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </TableCell>
+                    {isAdmin && (
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setEditMedicine(med)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => setDeleteTarget(med)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 );
               })

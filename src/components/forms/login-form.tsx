@@ -16,14 +16,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import Link from "next/link";
+import type { Role } from "@/server/authz";
 
 export function LoginForm() {
   const router = useRouter();
@@ -53,7 +47,8 @@ export function LoginForm() {
         return;
       }
 
-      router.push("/dashboard");
+      const role = (result.data?.user as { role?: Role } | undefined)?.role;
+      router.push(role === "ADMIN" ? "/dashboard" : "/sales");
       router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
@@ -63,12 +58,18 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Welcome back</CardTitle>
-        <CardDescription>Sign in to your account to continue</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <div className="w-full max-w-md space-y-8">
+      <div className="space-y-3 text-center">
+        <div className="bg-primary text-primary-foreground mx-auto flex size-12 items-center justify-center rounded-xl text-xl font-bold">
+          +
+        </div>
+        <h1 className="text-primary text-3xl font-bold tracking-tight">
+          leyuMed
+        </h1>
+        <p className="text-muted-foreground text-sm">Sign in to continue</p>
+      </div>
+
+      <div className="space-y-4">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {error && (
@@ -87,6 +88,7 @@ export function LoginForm() {
                     <Input
                       type="email"
                       placeholder="you@example.com"
+                      className="h-12"
                       {...field}
                     />
                   </FormControl>
@@ -102,26 +104,31 @@ export function LoginForm() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="********" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="********"
+                      className="h-12"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="h-12 w-full" disabled={loading}>
               {loading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
         </Form>
 
-        <div className="mt-4 text-center text-sm">
+        <p className="text-center text-sm">
           Don&apos;t have an account?{" "}
           <Link href="/signup" className="text-primary hover:underline">
-            Sign up
+            Create account
           </Link>
-        </div>
-      </CardContent>
-    </Card>
+        </p>
+      </div>
+    </div>
   );
 }

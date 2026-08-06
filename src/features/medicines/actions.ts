@@ -2,9 +2,27 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/server/db";
+import { requireAdmin, getSessionRole } from "@/server/authz";
 import { medicineSchema, type MedicineInput } from "./validators";
 
 export async function getMedicines(query?: string, category?: string) {
+  const role = await getSessionRole();
+  const select =
+    role === "ADMIN"
+      ? undefined
+      : {
+          id: true,
+          name: true,
+          category: true,
+          quantity: true,
+          unit: true,
+          unitPrice: true,
+          expiryDate: true,
+          description: true,
+          createdAt: true,
+          updatedAt: true,
+          // costPrice intentionally omitted for PHARMACIST
+        };
   return db.medicine.findMany({
     where: {
       ...(query
@@ -18,6 +36,7 @@ export async function getMedicines(query?: string, category?: string) {
       ...(category ? { category } : {}),
     },
     orderBy: { name: "asc" },
+    ...(select ? { select } : {}),
   });
 }
 
@@ -31,6 +50,7 @@ export async function getMedicineCategories() {
 }
 
 export async function createMedicine(input: MedicineInput) {
+  await requireAdmin();
   const data = medicineSchema.parse(input);
   return db.medicine.create({
     data: {
@@ -47,6 +67,7 @@ export async function createMedicine(input: MedicineInput) {
 }
 
 export async function updateMedicine(id: string, input: MedicineInput) {
+  await requireAdmin();
   const data = medicineSchema.parse(input);
   const result = await db.medicine.update({
     where: { id },
@@ -66,6 +87,7 @@ export async function updateMedicine(id: string, input: MedicineInput) {
 }
 
 export async function deleteMedicine(id: string) {
+  await requireAdmin();
   const result = await db.medicine.delete({ where: { id } });
   revalidatePath("/medicines");
   return result;

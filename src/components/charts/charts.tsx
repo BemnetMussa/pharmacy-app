@@ -18,8 +18,14 @@ import {
 
 type CurrencyFormatter = (value: unknown) => [string, string];
 
+const etb = new Intl.NumberFormat("en-ET", {
+  style: "currency",
+  currency: "ETB",
+  currencyDisplay: "code",
+});
+
 const fmtCurrency: CurrencyFormatter = (v) => [
-  `$${Number(v ?? 0).toFixed(2)}`,
+  etb.format(Number(v ?? 0)),
   "Revenue",
 ];
 
@@ -63,7 +69,7 @@ export function RevenueLineChart({
             new Date(v).toLocaleDateString("en", { month: "short", day: "numeric" })
           }
         />
-        <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `$${v}`} />
+        <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => etb.format(Number(v))} />
         <Tooltip
           formatter={fmtCurrency}
           labelFormatter={fmtLabel}
@@ -91,7 +97,7 @@ export function MonthlyRevenueBarChart({
       <BarChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
         <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-        <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `$${v}`} />
+        <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => etb.format(Number(v))} />
         <Tooltip formatter={fmtCurrency} contentStyle={tooltipStyle} />
         <Bar dataKey="revenue" fill="#3b82f6" radius={[4, 4, 0, 0]} />
       </BarChart>
@@ -140,9 +146,9 @@ export function IncomeVsCostBarChart({
       <BarChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
         <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-        <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `$${v}`} />
+        <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => etb.format(Number(v))} />
         <Tooltip
-          formatter={(v) => [`$${Number(v ?? 0).toFixed(2)}`, ""]}
+          formatter={(v) => [etb.format(Number(v ?? 0)), ""]}
           contentStyle={tooltipStyle}
         />
         <Legend />

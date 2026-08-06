@@ -13,10 +13,16 @@ model User {
   email         String    @unique
   emailVerified Boolean   @default(false)
   image         String?
+  role          Role      @default(PHARMACIST)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
+}
+
+enum Role {
+  ADMIN
+  PHARMACIST
 }
 
 model Session {

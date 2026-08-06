@@ -1,7 +1,7 @@
 import { SignupForm } from "@/components/forms/signup-form";
 
 export const metadata = {
-  title: "Sign up | TemplateStack",
+  title: "Sign up | leyuMed",
 };
 
 export default function SignupPage() {

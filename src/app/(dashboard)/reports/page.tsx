@@ -1,3 +1,6 @@
+import { redirect } from "next/navigation";
+import { getSession } from "@/server/session";
+import type { Role } from "@/server/authz";
 import {
   getRevenueByMonth,
   getTopMedicinesByRevenue,
@@ -9,8 +12,9 @@ import {
   IncomeVsCostBarChart,
 } from "@/components/charts/charts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatMoney } from "@/lib/utils";
 
-export const metadata = { title: "Reports | PharmacyApp" };
+export const metadata = { title: "Reports | leyuMed" };
 
 const MONTH_NAMES = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -22,6 +26,11 @@ export default async function ReportsPage({
 }: {
   searchParams: Promise<{ year?: string }>;
 }) {
+  const session = await getSession();
+  const role = (session?.user as { role?: Role } | undefined)?.role ?? "PHARMACIST";
+  if (role !== "ADMIN") {
+    redirect("/sales");
+  }
   const params = await searchParams;
   const year = params.year
     ? parseInt(params.year)
@@ -73,7 +82,7 @@ export default async function ReportsPage({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">${totalRevenue.toFixed(2)}</p>
+            <p className="text-2xl font-bold">{formatMoney(totalRevenue)}</p>
           </CardContent>
         </Card>
         <Card>
@@ -87,7 +96,7 @@ export default async function ReportsPage({
               {topMed?.name ?? "—"}
             </p>
             <p className="text-muted-foreground text-sm">
-              ${topMed?.revenue.toFixed(2) ?? "0.00"} revenue
+              {topMed ? `${formatMoney(topMed.revenue)} revenue` : "—"}
             </p>
           </CardContent>
         </Card>

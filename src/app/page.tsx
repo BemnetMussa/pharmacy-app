@@ -4,16 +4,16 @@ import { Navbar } from "@/components/layout/navbar";
 export default function LandingPage() {
   return (
     <>
-      <Navbar />
+      <Navbar role="PHARMACIST" />
       <main className="flex flex-1 flex-col">
         <section className="flex flex-1 flex-col items-center justify-center px-4 py-24 text-center">
           <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl">
-            Manage your pharmacy with{" "}
-            <span className="text-primary">PharmacyApp</span>
+            <span className="text-primary">leyuMed</span> — your pharmacy,
+            in focus
           </h1>
           <p className="text-muted-foreground mt-6 max-w-2xl text-lg">
-            Track your medicine inventory, record sales, monitor income, and
-            view reports — all in one simple dashboard built for your pharmacy.
+            Track inventory, record sales in seconds, and see how the pharmacy
+            is doing — from the counter or your phone.
           </p>
           <div className="mt-10 flex gap-4">
             <Link
@@ -45,10 +45,10 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="rounded-lg border p-6">
-                <h3 className="mb-2 text-lg font-semibold">Sales & Income</h3>
+                <h3 className="mb-2 text-lg font-semibold">Sales</h3>
                 <p className="text-muted-foreground text-sm">
                   Record sales in seconds with automatic totals and stock
-                  updates. Log any other income your pharmacy earns.
+                  updates — optimized for the counter.
                 </p>
               </div>
               <div className="rounded-lg border p-6">
@@ -66,7 +66,7 @@ export default function LandingPage() {
       <footer className="border-t py-6">
         <div className="container mx-auto px-4 text-center">
           <p className="text-muted-foreground text-sm">
-            PharmacyApp — built for your pharmacy.
+            leyuMed — built for your pharmacy.
           </p>
         </div>
       </footer>
