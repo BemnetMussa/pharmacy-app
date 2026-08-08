@@ -102,28 +102,62 @@ export async function getSummaryStats() {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   thirtyDaysAgo.setHours(0, 0, 0, 0);
 
-  const [medicineCount, stockAgg, todayRevenue, revenue30d, lowStock, outOfStock] =
-    await Promise.all([
-      db.medicine.count(),
-      db.medicine.aggregate({ _sum: { quantity: true } }),
-      getTodayRevenue(),
-      db.sale.aggregate({
-        where: { soldAt: { gte: thirtyDaysAgo } },
-        _sum: { totalAmount: true },
-      }),
-      db.medicine.count({ where: { quantity: { gt: 0, lte: 10 } } }),
-      db.medicine.count({ where: { quantity: 0 } }),
-    ]);
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const soon = new Date();
+  soon.setDate(soon.getDate() + 90);
+  soon.setHours(23, 59, 59, 999);
+
+  const [
+    medicineCount,
+    stockAgg,
+    todayRevenue,
+    todaySalesCount,
+    revenue30d,
+    lowStock,
+    outOfStock,
+    expiringSoon,
+    inventoryRows,
+  ] = await Promise.all([
+    db.medicine.count(),
+    db.medicine.aggregate({ _sum: { quantity: true } }),
+    getTodayRevenue(),
+    db.sale.count({ where: { soldAt: { gte: todayStart } } }),
+    db.sale.aggregate({
+      where: { soldAt: { gte: thirtyDaysAgo } },
+      _sum: { totalAmount: true },
+    }),
+    db.medicine.count({ where: { quantity: { gt: 0, lte: 10 } } }),
+    db.medicine.count({ where: { quantity: 0 } }),
+    db.medicine.count({
+      where: {
+        quantity: { gt: 0 },
+        expiryDate: { not: null, lte: soon, gte: todayStart },
+      },
+    }),
+    db.medicine.findMany({
+      select: { quantity: true, costPrice: true },
+    }),
+  ]);
+
+  const inventoryValue = inventoryRows.reduce(
+    (sum, m) => sum + m.quantity * m.costPrice,
+    0,
+  );
 
   return {
     medicineCount,
     stockOnHand: stockAgg._sum.quantity ?? 0,
     todayRevenue,
+    todaySalesCount,
     revenue30d: revenue30d._sum.totalAmount ?? 0,
     monthlyRevenue: await getCurrentMonthRevenue(),
     lowStock,
     outOfStock,
     needsAttention: lowStock + outOfStock,
+    expiringSoon,
+    inventoryValue,
   };
 }
 

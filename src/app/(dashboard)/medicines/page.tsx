@@ -8,7 +8,12 @@ export const metadata = { title: "Medicines | leyuMed" };
 export default async function MedicinesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    category?: string;
+    stock?: string;
+    action?: string;
+  }>;
 }) {
   const params = await searchParams;
   const [session, medicines, categories] = await Promise.all([
@@ -19,6 +24,11 @@ export default async function MedicinesPage({
   const role = ((session?.user as { role?: Role } | undefined)?.role ??
     "PHARMACIST") as Role;
 
+  const stockFilter =
+    params.stock === "attention" || params.stock === "expiring"
+      ? params.stock
+      : undefined;
+
   return (
     <div className="mx-auto max-w-5xl space-y-4">
       <div className="flex items-start justify-between gap-3">
@@ -27,9 +37,13 @@ export default async function MedicinesPage({
             Medicines
           </h1>
           <p className="text-muted-foreground text-sm">
-            {role === "ADMIN"
-              ? "Manage inventory, prices, and stock levels."
-              : "Browse stock and selling prices."}
+            {stockFilter === "attention"
+              ? "Showing low and out-of-stock medicines."
+              : stockFilter === "expiring"
+                ? "Showing medicines expiring within 90 days."
+                : role === "ADMIN"
+                  ? "Manage inventory, prices, and stock levels."
+                  : "Browse stock and selling prices."}
           </p>
         </div>
       </div>
@@ -39,6 +53,8 @@ export default async function MedicinesPage({
         searchQuery={params.q ?? ""}
         selectedCategory={params.category ?? ""}
         role={role}
+        initialStockFilter={stockFilter}
+        openAddOnMount={params.action === "add" && role === "ADMIN"}
       />
     </div>
   );

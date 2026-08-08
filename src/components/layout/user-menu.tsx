@@ -40,7 +40,7 @@ export function UserMenu({ user, role = "PHARMACIST" }: UserMenuProps) {
     setSigningOut(true);
     try {
       await authClient.signOut();
-      router.push("/");
+      router.push("/login");
       router.refresh();
     } catch {
       setSigningOut(false);

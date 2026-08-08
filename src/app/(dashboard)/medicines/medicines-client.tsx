@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -242,40 +242,54 @@ export function MedicinesClient({
   searchQuery,
   selectedCategory,
   role,
+  initialStockFilter,
+  openAddOnMount = false,
 }: {
   medicines: Medicine[];
   categories: string[];
   searchQuery: string;
   selectedCategory: string;
   role: "ADMIN" | "PHARMACIST";
+  initialStockFilter?: "attention" | "expiring";
+  openAddOnMount?: boolean;
 }) {
   const isAdmin = role === "ADMIN";
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [addOpen, setAddOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(openAddOnMount);
   const [editMedicine, setEditMedicine] = useState<Medicine | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Medicine | null>(null);
-  const [lowOnly, setLowOnly] = useState(false);
+  const [stockFilter, setStockFilter] = useState<
+    "all" | "attention" | "expiring"
+  >(initialStockFilter ?? "all");
   const [, startTransition] = useTransition();
 
-  function pushParams(q: string, category: string) {
-    const params = new URLSearchParams(searchParams.toString());
+  function pushParams(
+    q: string,
+    category: string,
+    stock: "all" | "attention" | "expiring",
+  ) {
+    const params = new URLSearchParams();
     if (q) params.set("q", q);
-    else params.delete("q");
     if (category) params.set("category", category);
-    else params.delete("category");
-    router.push(`?${params.toString()}`);
+    if (stock !== "all") params.set("stock", stock);
+    const qs = params.toString();
+    router.push(qs ? `?${qs}` : "/medicines");
   }
 
   function handleSearch(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const q = (new FormData(e.currentTarget).get("q") as string) ?? "";
-    startTransition(() => pushParams(q, selectedCategory));
+    startTransition(() => pushParams(q, selectedCategory, stockFilter));
   }
 
   function handleCategoryChange(val: string | null) {
     const cat = !val || val === "all" ? "" : val;
-    startTransition(() => pushParams(searchQuery, cat));
+    startTransition(() => pushParams(searchQuery, cat, stockFilter));
+  }
+
+  function setStock(next: "all" | "attention" | "expiring") {
+    setStockFilter(next);
+    startTransition(() => pushParams(searchQuery, selectedCategory, next));
   }
 
   function handleDelete() {
@@ -287,9 +301,21 @@ export function MedicinesClient({
     });
   }
 
-  const visible = lowOnly
-    ? medicines.filter((m) => getStockStatus(m.quantity) !== "OK")
-    : medicines;
+  const now = new Date();
+  const in90 = new Date();
+  in90.setDate(in90.getDate() + 90);
+
+  const visible = medicines.filter((m) => {
+    if (stockFilter === "attention") {
+      return getStockStatus(m.quantity) !== "OK";
+    }
+    if (stockFilter === "expiring") {
+      if (!m.expiryDate || m.quantity <= 0) return false;
+      const exp = new Date(m.expiryDate);
+      return exp >= now && exp <= in90;
+    }
+    return true;
+  });
 
   const lowCount = medicines.filter((m) => getStockStatus(m.quantity) === "Low").length;
   const outCount = medicines.filter((m) => getStockStatus(m.quantity) === "Out").length;
@@ -328,15 +354,28 @@ export function MedicinesClient({
 
         <button
           type="button"
-          onClick={() => setLowOnly((v) => !v)}
+          onClick={() => setStock(stockFilter === "attention" ? "all" : "attention")}
           className={cn(
             "h-10 rounded-full border px-3 text-xs font-medium transition-colors",
-            lowOnly
+            stockFilter === "attention"
               ? "border-amber-300 bg-amber-50 text-amber-800"
               : "border-border bg-card text-muted-foreground",
           )}
         >
-          Low stock
+          Low / out
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setStock(stockFilter === "expiring" ? "all" : "expiring")}
+          className={cn(
+            "h-10 rounded-full border px-3 text-xs font-medium transition-colors",
+            stockFilter === "expiring"
+              ? "border-amber-300 bg-amber-50 text-amber-800"
+              : "border-border bg-card text-muted-foreground",
+          )}
+        >
+          Expiring soon
         </button>
 
         {isAdmin && (
