@@ -109,7 +109,7 @@ export default async function ReportsPage({
             <p className="text-muted-foreground text-xs font-medium">
               Monthly revenue
             </p>
-            <p className="text-2xl font-bold tabular-nums">
+            <p className="leyu-money text-2xl font-bold">
               {formatMoney(totalRevenue)}
             </p>
             <p className="text-muted-foreground text-xs">

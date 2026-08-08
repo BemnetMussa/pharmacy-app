@@ -176,7 +176,7 @@ function SaleForm({
       {selectedMed && (
         <div className="bg-secondary flex items-center justify-between rounded-xl px-4 py-3 text-sm">
           <span className="text-muted-foreground">Line total</span>
-          <span className="text-lg font-bold tabular-nums">
+          <span className="leyu-money text-lg font-bold">
             {formatMoney(total)}
           </span>
         </div>
@@ -336,7 +336,7 @@ export function SalesClient({
           <p className="text-muted-foreground text-xs font-medium">
             Today&apos;s revenue
           </p>
-          <p className="mt-1 text-xl font-bold tabular-nums md:text-2xl">
+          <p className="leyu-money mt-1 text-xl font-bold md:text-2xl">
             {formatMoney(todayRevenue)}
           </p>
         </div>
@@ -344,7 +344,7 @@ export function SalesClient({
           <p className="text-muted-foreground text-xs font-medium">
             Transactions
           </p>
-          <p className="mt-1 text-xl font-bold tabular-nums md:text-2xl">
+          <p className="leyu-money mt-1 text-xl font-bold md:text-2xl">
             {sales.length}
           </p>
           <p className="text-muted-foreground mt-0.5 text-xs">
@@ -398,7 +398,7 @@ export function SalesClient({
                     {sale.note ? ` · ${sale.note}` : ""}
                   </p>
                 </div>
-                <p className="text-primary shrink-0 text-sm font-bold tabular-nums">
+                <p className="leyu-money text-primary shrink-0 text-sm font-bold">
                   {formatMoney(sale.totalAmount)}
                 </p>
               </div>
@@ -434,13 +434,13 @@ export function SalesClient({
                     <TableCell className="font-medium">
                       {sale.medicine.name}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums">
+                    <TableCell className="leyu-money text-right">
                       {sale.quantity} {sale.medicine.unit}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums">
+                    <TableCell className="leyu-money text-right">
                       {formatMoney(sale.unitPrice)}
                     </TableCell>
-                    <TableCell className="text-right font-semibold tabular-nums">
+                    <TableCell className="leyu-money text-right font-semibold">
                       {formatMoney(sale.totalAmount)}
                     </TableCell>
                     <TableCell>

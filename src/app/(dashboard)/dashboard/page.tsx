@@ -51,7 +51,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
         <div className="leyu-metric-card">
           <p className="text-muted-foreground text-xs font-medium">Medicines</p>
-          <p className="mt-1 text-2xl font-bold tabular-nums">
+          <p className="leyu-money mt-1 text-2xl font-bold">
             {stats.medicineCount}
           </p>
           <p className="text-muted-foreground mt-1 text-xs">SKUs in catalog</p>
@@ -61,7 +61,7 @@ export default async function DashboardPage() {
           <p className="text-muted-foreground text-xs font-medium">
             Stock on hand
           </p>
-          <p className="mt-1 text-2xl font-bold tabular-nums">
+          <p className="leyu-money mt-1 text-2xl font-bold">
             {stats.stockOnHand.toLocaleString()}
           </p>
           <p className="text-muted-foreground mt-1 text-xs">Total units</p>
@@ -71,7 +71,7 @@ export default async function DashboardPage() {
           <p className="text-muted-foreground text-xs font-medium">
             Revenue · 30d
           </p>
-          <p className="mt-1 text-2xl font-bold tabular-nums">
+          <p className="leyu-money mt-1 text-2xl font-bold">
             {formatMoney(stats.revenue30d)}
           </p>
           <p className="text-muted-foreground mt-1 text-xs">
@@ -98,8 +98,8 @@ export default async function DashboardPage() {
           <p
             className={
               stats.needsAttention > 0
-                ? "mt-1 text-2xl font-bold tabular-nums text-amber-900"
-                : "mt-1 text-2xl font-bold tabular-nums"
+                ? "leyu-money mt-1 text-2xl font-bold text-amber-900"
+                : "leyu-money mt-1 text-2xl font-bold"
             }
           >
             {stats.needsAttention}

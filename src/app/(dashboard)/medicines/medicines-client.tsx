@@ -373,7 +373,7 @@ export function MedicinesClient({
                   <p className="text-muted-foreground text-xs">
                     {med.category} · Qty: {med.quantity} {med.unit}
                   </p>
-                  <p className="text-sm font-semibold tabular-nums">
+                  <p className="leyu-money text-sm font-semibold">
                     Sell: {formatMoney(med.unitPrice)}
                   </p>
                 </div>
@@ -438,15 +438,15 @@ export function MedicinesClient({
                   <TableRow key={med.id}>
                     <TableCell className="font-medium">{med.name}</TableCell>
                     <TableCell>{med.category}</TableCell>
-                    <TableCell className="text-right tabular-nums">
+                    <TableCell className="leyu-money text-right">
                       {med.quantity}
                     </TableCell>
                     <TableCell>{med.unit}</TableCell>
-                    <TableCell className="text-right tabular-nums">
+                    <TableCell className="leyu-money text-right">
                       {formatMoney(med.unitPrice)}
                     </TableCell>
                     {isAdmin && (
-                      <TableCell className="text-right tabular-nums">
+                      <TableCell className="leyu-money text-right">
                         {formatMoney(med.costPrice ?? 0)}
                       </TableCell>
                     )}
