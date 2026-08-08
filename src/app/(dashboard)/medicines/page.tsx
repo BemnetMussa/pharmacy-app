@@ -16,16 +16,19 @@ export default async function MedicinesPage({
     getMedicines(params.q, params.category),
     getMedicineCategories(),
   ]);
-  const role = ((session?.user as { role?: Role } | undefined)?.role ?? "PHARMACIST") as Role;
+  const role = ((session?.user as { role?: Role } | undefined)?.role ??
+    "PHARMACIST") as Role;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-5xl space-y-4">
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Medicines</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl font-bold tracking-tight md:text-2xl">
+            Medicines
+          </h1>
+          <p className="text-muted-foreground text-sm">
             {role === "ADMIN"
-              ? "Manage your medicine inventory."
+              ? "Manage inventory, prices, and stock levels."
               : "Browse stock and selling prices."}
           </p>
         </div>

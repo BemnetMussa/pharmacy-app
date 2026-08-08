@@ -35,7 +35,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import {
   createMedicine,
@@ -44,7 +43,8 @@ import {
 } from "@/features/medicines/actions";
 import { medicineSchema } from "@/features/medicines/validators";
 import type { MedicineInput } from "@/features/medicines/validators";
-import { formatMoney } from "@/lib/utils";
+import { cn, formatMoney } from "@/lib/utils";
+import { Plus } from "lucide-react";
 
 type Medicine = {
   id: string;
@@ -59,6 +59,28 @@ type Medicine = {
 };
 
 const LOW_STOCK_THRESHOLD = 10;
+
+type StockStatus = "OK" | "Low" | "Out";
+
+function getStockStatus(quantity: number): StockStatus {
+  if (quantity <= 0) return "Out";
+  if (quantity <= LOW_STOCK_THRESHOLD) return "Low";
+  return "OK";
+}
+
+function StockPill({ status }: { status: StockStatus }) {
+  return (
+    <span
+      className={cn(
+        status === "OK" && "leyu-status-ok",
+        status === "Low" && "leyu-status-low",
+        status === "Out" && "leyu-status-out",
+      )}
+    >
+      {status}
+    </span>
+  );
+}
 
 function MedicineForm({
   initial,
@@ -110,25 +132,17 @@ function MedicineForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="col-span-2 space-y-1">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="space-y-1 sm:col-span-2">
           <Label htmlFor="name">Name</Label>
-          <Input id="name" name="name" defaultValue={initial?.name ?? ""} />
-          {errors.name && (
-            <p className="text-destructive text-xs">{errors.name}</p>
-          )}
+          <Input id="name" name="name" className="h-11" defaultValue={initial?.name ?? ""} />
+          {errors.name && <p className="text-destructive text-xs">{errors.name}</p>}
         </div>
 
         <div className="space-y-1">
           <Label htmlFor="category">Category</Label>
-          <Input
-            id="category"
-            name="category"
-            defaultValue={initial?.category ?? ""}
-          />
-          {errors.category && (
-            <p className="text-destructive text-xs">{errors.category}</p>
-          )}
+          <Input id="category" name="category" className="h-11" defaultValue={initial?.category ?? ""} />
+          {errors.category && <p className="text-destructive text-xs">{errors.category}</p>}
         </div>
 
         <div className="space-y-1">
@@ -136,12 +150,11 @@ function MedicineForm({
           <Input
             id="unit"
             name="unit"
+            className="h-11"
             placeholder="e.g. tablet, bottle"
             defaultValue={initial?.unit ?? "unit"}
           />
-          {errors.unit && (
-            <p className="text-destructive text-xs">{errors.unit}</p>
-          )}
+          {errors.unit && <p className="text-destructive text-xs">{errors.unit}</p>}
         </div>
 
         <div className="space-y-1">
@@ -151,65 +164,61 @@ function MedicineForm({
             name="quantity"
             type="number"
             min={0}
+            className="h-11"
             defaultValue={initial?.quantity ?? 0}
           />
-          {errors.quantity && (
-            <p className="text-destructive text-xs">{errors.quantity}</p>
-          )}
+          {errors.quantity && <p className="text-destructive text-xs">{errors.quantity}</p>}
         </div>
 
         <div className="space-y-1">
-          <Label htmlFor="unitPrice">Sale Price</Label>
+          <Label htmlFor="unitPrice">Sale Price (ETB)</Label>
           <Input
             id="unitPrice"
             name="unitPrice"
             type="number"
             min={0}
             step={0.01}
+            className="h-11"
             defaultValue={initial?.unitPrice ?? ""}
           />
-          {errors.unitPrice && (
-            <p className="text-destructive text-xs">{errors.unitPrice}</p>
-          )}
+          {errors.unitPrice && <p className="text-destructive text-xs">{errors.unitPrice}</p>}
         </div>
 
         <div className="space-y-1">
-          <Label htmlFor="costPrice">Cost Price</Label>
+          <Label htmlFor="costPrice">Cost Price (ETB)</Label>
           <Input
             id="costPrice"
             name="costPrice"
             type="number"
             min={0}
             step={0.01}
+            className="h-11"
             defaultValue={initial?.costPrice ?? ""}
           />
-          {errors.costPrice && (
-            <p className="text-destructive text-xs">{errors.costPrice}</p>
-          )}
+          {errors.costPrice && <p className="text-destructive text-xs">{errors.costPrice}</p>}
         </div>
 
-        <div className="col-span-2 space-y-1">
+        <div className="space-y-1 sm:col-span-2">
           <Label htmlFor="expiryDate">Expiry Date</Label>
           <Input
             id="expiryDate"
             name="expiryDate"
             type="date"
+            className="h-11"
             defaultValue={
               initial?.expiryDate
                 ? new Date(initial.expiryDate).toISOString().split("T")[0]
                 : ""
             }
           />
-          {errors.expiryDate && (
-            <p className="text-destructive text-xs">{errors.expiryDate}</p>
-          )}
         </div>
 
-        <div className="col-span-2 space-y-1">
+        <div className="space-y-1 sm:col-span-2">
           <Label htmlFor="description">Description (optional)</Label>
           <Input
             id="description"
             name="description"
+            className="h-11"
             defaultValue={initial?.description ?? ""}
           />
         </div>
@@ -219,7 +228,7 @@ function MedicineForm({
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" className="h-11" disabled={pending}>
           {pending ? "Saving…" : initial ? "Save Changes" : "Add Medicine"}
         </Button>
       </div>
@@ -246,6 +255,7 @@ export function MedicinesClient({
   const [addOpen, setAddOpen] = useState(false);
   const [editMedicine, setEditMedicine] = useState<Medicine | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Medicine | null>(null);
+  const [lowOnly, setLowOnly] = useState(false);
   const [, startTransition] = useTransition();
 
   function pushParams(q: string, category: string) {
@@ -277,31 +287,37 @@ export function MedicinesClient({
     });
   }
 
+  const visible = lowOnly
+    ? medicines.filter((m) => getStockStatus(m.quantity) !== "OK")
+    : medicines;
+
+  const lowCount = medicines.filter((m) => getStockStatus(m.quantity) === "Low").length;
+  const outCount = medicines.filter((m) => getStockStatus(m.quantity) === "Out").length;
+
   return (
     <div className="space-y-4">
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-3">
-        <form onSubmit={handleSearch} className="flex flex-1 gap-2">
-          <Input
-            name="q"
-            placeholder="Search medicines…"
-            defaultValue={searchQuery}
-            className="max-w-sm"
-          />
-          <Button type="submit" variant="outline">
-            Search
-          </Button>
-        </form>
+      <form onSubmit={handleSearch} className="flex gap-2">
+        <Input
+          name="q"
+          placeholder="Search medicines…"
+          defaultValue={searchQuery}
+          className="h-11 flex-1 rounded-xl bg-card"
+        />
+        <Button type="submit" variant="outline" className="h-11 rounded-xl">
+          Search
+        </Button>
+      </form>
 
+      <div className="flex flex-wrap items-center gap-2">
         <Select
           value={selectedCategory || "all"}
           onValueChange={handleCategoryChange}
         >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="All Categories" />
+          <SelectTrigger className="h-10 w-[160px] rounded-full">
+            <SelectValue placeholder="All categories" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="all">All categories</SelectItem>
             {categories.map((cat) => (
               <SelectItem key={cat} value={cat}>
                 {cat}
@@ -310,11 +326,88 @@ export function MedicinesClient({
           </SelectContent>
         </Select>
 
-        {isAdmin && <Button onClick={() => setAddOpen(true)}>Add Medicine</Button>}
+        <button
+          type="button"
+          onClick={() => setLowOnly((v) => !v)}
+          className={cn(
+            "h-10 rounded-full border px-3 text-xs font-medium transition-colors",
+            lowOnly
+              ? "border-amber-300 bg-amber-50 text-amber-800"
+              : "border-border bg-card text-muted-foreground",
+          )}
+        >
+          Low stock
+        </button>
+
+        {isAdmin && (
+          <Button
+            className="ml-auto h-10 rounded-xl"
+            onClick={() => setAddOpen(true)}
+          >
+            <Plus className="size-4" aria-hidden />
+            Add
+          </Button>
+        )}
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border">
+      {/* Mobile card list */}
+      <div className="space-y-2 md:hidden">
+        {visible.length === 0 ? (
+          <p className="text-muted-foreground py-10 text-center text-sm">
+            No medicines found.
+          </p>
+        ) : (
+          visible.map((med) => {
+            const status = getStockStatus(med.quantity);
+            return (
+              <div
+                key={med.id}
+                className={cn(
+                  "leyu-list-row",
+                  status === "Low" && "border-amber-200 bg-amber-50/40",
+                  status === "Out" && "border-red-200 bg-red-50/40",
+                )}
+              >
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <p className="truncate text-sm font-semibold">{med.name}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {med.category} · Qty: {med.quantity} {med.unit}
+                  </p>
+                  <p className="text-sm font-semibold tabular-nums">
+                    Sell: {formatMoney(med.unitPrice)}
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-col items-end gap-2">
+                  <StockPill status={status} />
+                  {isAdmin && (
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2 text-xs"
+                        onClick={() => setEditMedicine(med)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive h-8 px-2 text-xs"
+                        onClick={() => setDeleteTarget(med)}
+                      >
+                        Del
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="leyu-surface-card hidden overflow-hidden md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -323,60 +416,42 @@ export function MedicinesClient({
               <TableHead className="text-right">Qty</TableHead>
               <TableHead>Unit</TableHead>
               <TableHead className="text-right">Sale Price</TableHead>
-              {isAdmin && <TableHead className="text-right">Cost Price</TableHead>}
-              <TableHead>Expiry</TableHead>
+              {isAdmin && <TableHead className="text-right">Cost</TableHead>}
               <TableHead>Status</TableHead>
               {isAdmin && <TableHead className="text-right">Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {medicines.length === 0 ? (
+            {visible.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={isAdmin ? 9 : 7}
+                  colSpan={isAdmin ? 8 : 6}
                   className="text-muted-foreground py-8 text-center"
                 >
-                  No medicines found.{isAdmin ? " Add your first medicine." : ""}
+                  No medicines found.
                 </TableCell>
               </TableRow>
             ) : (
-              medicines.map((med) => {
-                const isLow = med.quantity <= LOW_STOCK_THRESHOLD;
-                const isExpired =
-                  med.expiryDate && new Date(med.expiryDate) < new Date();
+              visible.map((med) => {
+                const status = getStockStatus(med.quantity);
                 return (
                   <TableRow key={med.id}>
                     <TableCell className="font-medium">{med.name}</TableCell>
                     <TableCell>{med.category}</TableCell>
-                    <TableCell className="text-right">{med.quantity}</TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {med.quantity}
+                    </TableCell>
                     <TableCell>{med.unit}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right tabular-nums">
                       {formatMoney(med.unitPrice)}
                     </TableCell>
                     {isAdmin && (
-                      <TableCell className="text-right">
+                      <TableCell className="text-right tabular-nums">
                         {formatMoney(med.costPrice ?? 0)}
                       </TableCell>
                     )}
                     <TableCell>
-                      {med.expiryDate
-                        ? new Date(med.expiryDate).toLocaleDateString()
-                        : "—"}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        {isLow && (
-                          <Badge variant="destructive">Low Stock</Badge>
-                        )}
-                        {isExpired && (
-                          <Badge variant="outline" className="text-orange-500">
-                            Expired
-                          </Badge>
-                        )}
-                        {!isLow && !isExpired && (
-                          <Badge variant="secondary">In Stock</Badge>
-                        )}
-                      </div>
+                      <StockPill status={status} />
                     </TableCell>
                     {isAdmin && (
                       <TableCell className="text-right">
@@ -407,7 +482,14 @@ export function MedicinesClient({
         </Table>
       </div>
 
-      {/* Add Dialog */}
+      <p className="text-muted-foreground text-center text-xs">
+        Showing {visible.length} of {medicines.length} medicines. Low &lt;{" "}
+        {LOW_STOCK_THRESHOLD} · Out = 0 · highlighted for review.
+        {lowCount + outCount > 0
+          ? ` (${lowCount} low, ${outCount} out)`
+          : ""}
+      </p>
+
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -423,7 +505,6 @@ export function MedicinesClient({
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
       <Dialog
         open={!!editMedicine}
         onOpenChange={(open) => !open && setEditMedicine(null)}
@@ -445,7 +526,6 @@ export function MedicinesClient({
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirm */}
       <AlertDialog
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
@@ -455,8 +535,8 @@ export function MedicinesClient({
             <AlertDialogTitle>Delete Medicine</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete{" "}
-              <strong>{deleteTarget?.name}</strong>? This action cannot be
-              undone and will also delete all associated sales records.
+              <strong>{deleteTarget?.name}</strong>? This cannot be undone and
+              will also delete associated sales.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

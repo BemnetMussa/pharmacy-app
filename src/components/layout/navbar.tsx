@@ -47,7 +47,7 @@ export function Navbar({ role }: { role: "ADMIN" | "PHARMACIST" }) {
         <div className="flex items-center space-x-2">
           <ThemeToggle />
           {session ? (
-            <UserMenu user={session.user} />
+            <UserMenu user={session.user} role={role} />
           ) : (
             <div className="flex items-center space-x-2">
               <Link

@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { auth } from "../src/server/auth";
@@ -25,16 +26,16 @@ const seedUsers = [
 ];
 
 const medicines = [
-  { name: "Paracetamol 500mg", category: "Painkillers", quantity: 120, unit: "tablet", unitPrice: 0.5, costPrice: 0.2, expiryDate: new Date("2027-06-01") },
-  { name: "Ibuprofen 400mg", category: "Painkillers", quantity: 85, unit: "tablet", unitPrice: 0.75, costPrice: 0.3, expiryDate: new Date("2027-03-15") },
-  { name: "Amoxicillin 250mg", category: "Antibiotics", quantity: 60, unit: "capsule", unitPrice: 1.2, costPrice: 0.55, expiryDate: new Date("2026-12-01") },
-  { name: "Azithromycin 500mg", category: "Antibiotics", quantity: 8, unit: "tablet", unitPrice: 2.5, costPrice: 1.1, expiryDate: new Date("2027-01-20") },
-  { name: "Cetirizine 10mg", category: "Antihistamines", quantity: 200, unit: "tablet", unitPrice: 0.4, costPrice: 0.15, expiryDate: new Date("2028-02-10") },
-  { name: "Omeprazole 20mg", category: "Digestive", quantity: 45, unit: "capsule", unitPrice: 1.0, costPrice: 0.4, expiryDate: new Date("2027-08-30") },
-  { name: "Vitamin C 1000mg", category: "Vitamins", quantity: 150, unit: "tablet", unitPrice: 0.6, costPrice: 0.25, expiryDate: new Date("2028-05-01") },
-  { name: "Cough Syrup 100ml", category: "Syrups", quantity: 5, unit: "bottle", unitPrice: 4.5, costPrice: 2.0, expiryDate: new Date("2026-10-15") },
-  { name: "Insulin Glargine", category: "Diabetes", quantity: 25, unit: "vial", unitPrice: 18.0, costPrice: 11.0, expiryDate: new Date("2026-11-30") },
-  { name: "Metformin 850mg", category: "Diabetes", quantity: 90, unit: "tablet", unitPrice: 0.35, costPrice: 0.12, expiryDate: new Date("2027-09-12") },
+  { name: "Paracetamol 500mg", category: "Painkillers", quantity: 200, unit: "tablet", unitPrice: 0.5, costPrice: 0.2, expiryDate: new Date("2027-06-01") },
+  { name: "Ibuprofen 400mg", category: "Painkillers", quantity: 150, unit: "tablet", unitPrice: 0.75, costPrice: 0.3, expiryDate: new Date("2027-03-15") },
+  { name: "Amoxicillin 250mg", category: "Antibiotics", quantity: 100, unit: "capsule", unitPrice: 1.2, costPrice: 0.55, expiryDate: new Date("2026-12-01") },
+  { name: "Azithromycin 500mg", category: "Antibiotics", quantity: 40, unit: "tablet", unitPrice: 2.5, costPrice: 1.1, expiryDate: new Date("2027-01-20") },
+  { name: "Cetirizine 10mg", category: "Antihistamines", quantity: 220, unit: "tablet", unitPrice: 0.4, costPrice: 0.15, expiryDate: new Date("2028-02-10") },
+  { name: "Omeprazole 20mg", category: "Digestive", quantity: 90, unit: "capsule", unitPrice: 1.0, costPrice: 0.4, expiryDate: new Date("2027-08-30") },
+  { name: "Vitamin C 1000mg", category: "Vitamins", quantity: 180, unit: "tablet", unitPrice: 0.6, costPrice: 0.25, expiryDate: new Date("2028-05-01") },
+  { name: "Cough Syrup 100ml", category: "Syrups", quantity: 30, unit: "bottle", unitPrice: 4.5, costPrice: 2.0, expiryDate: new Date("2026-10-15") },
+  { name: "Insulin Glargine", category: "Diabetes", quantity: 40, unit: "vial", unitPrice: 18.0, costPrice: 11.0, expiryDate: new Date("2026-11-30") },
+  { name: "Metformin 850mg", category: "Diabetes", quantity: 120, unit: "tablet", unitPrice: 0.35, costPrice: 0.12, expiryDate: new Date("2027-09-12") },
 ];
 
 async function main() {
@@ -58,6 +59,11 @@ async function main() {
     });
   }
 
+  // Fresh demo data — clear domain tables so stock matches sales history
+  await db.sale.deleteMany();
+  await db.incomeEntry.deleteMany();
+  await db.medicine.deleteMany();
+
   const created = [];
   for (const med of medicines) {
     const m = await db.medicine.create({ data: med });
@@ -67,26 +73,43 @@ async function main() {
   const notes = ["regular customer", "prescription", null, "walk-in", null];
   let saleCount = 0;
   for (let daysAgo = 29; daysAgo >= 0; daysAgo--) {
-    const salesPerDay = Math.floor(Math.random() * 4) + 1;
+    const salesPerDay = Math.floor(Math.random() * 3) + 1;
     for (let i = 0; i < salesPerDay; i++) {
       const med = created[Math.floor(Math.random() * created.length)];
-      const qty = Math.floor(Math.random() * 5) + 1;
+      const qty = Math.floor(Math.random() * 3) + 1;
+
+      const current = await db.medicine.findUnique({ where: { id: med.id } });
+      if (!current || current.quantity < qty) continue;
+
       const soldAt = new Date();
       soldAt.setDate(soldAt.getDate() - daysAgo);
       soldAt.setHours(9 + Math.floor(Math.random() * 10), Math.floor(Math.random() * 60));
-      await db.sale.create({
-        data: {
-          medicineId: med.id,
-          quantity: qty,
-          unitPrice: med.unitPrice,
-          totalAmount: med.unitPrice * qty,
-          soldAt,
-          note: notes[Math.floor(Math.random() * notes.length)],
-        },
-      });
+
+      await db.$transaction([
+        db.sale.create({
+          data: {
+            medicineId: med.id,
+            quantity: qty,
+            unitPrice: med.unitPrice,
+            totalAmount: med.unitPrice * qty,
+            soldAt,
+            note: notes[Math.floor(Math.random() * notes.length)],
+          },
+        }),
+        db.medicine.update({
+          where: { id: med.id },
+          data: { quantity: { decrement: qty } },
+        }),
+      ]);
       saleCount++;
     }
   }
+
+  // Leave a couple of items low-stock for demo alerts
+  await db.medicine.updateMany({
+    where: { name: { in: ["Azithromycin 500mg", "Cough Syrup 100ml"] } },
+    data: { quantity: 5 },
+  });
 
   const now = new Date();
   const incomeEntries = [
@@ -100,7 +123,10 @@ async function main() {
     await db.incomeEntry.create({ data: entry });
   }
 
-  console.log(`Seeded ${created.length} medicines, ${saleCount} sales, ${incomeEntries.length} income entries`);
+  console.log(
+    `Seeded ${created.length} medicines, ${saleCount} sales (stock decremented), ${incomeEntries.length} income entries`,
+  );
+  console.log("Logins: admin@leyumed.com / pharmacist@leyumed.com — password123");
 }
 
 main()

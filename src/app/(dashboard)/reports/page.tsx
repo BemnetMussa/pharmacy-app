@@ -1,17 +1,17 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getSession } from "@/server/session";
 import type { Role } from "@/server/authz";
 import {
   getRevenueByMonth,
   getTopMedicinesByRevenue,
-  getIncomeVsCost,
+  getSalesVsOtherIncome,
 } from "@/features/reports/queries";
 import {
   MonthlyRevenueBarChart,
-  TopMedicinesPieChart,
-  IncomeVsCostBarChart,
+  TopMedicinesBarChart,
+  SalesVsOtherIncomeBarChart,
 } from "@/components/charts/charts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMoney } from "@/lib/utils";
 
 export const metadata = { title: "Reports | leyuMed" };
@@ -27,7 +27,8 @@ export default async function ReportsPage({
   searchParams: Promise<{ year?: string }>;
 }) {
   const session = await getSession();
-  const role = (session?.user as { role?: Role } | undefined)?.role ?? "PHARMACIST";
+  const role =
+    (session?.user as { role?: Role } | undefined)?.role ?? "PHARMACIST";
   if (role !== "ADMIN") {
     redirect("/sales");
   }
@@ -36,10 +37,10 @@ export default async function ReportsPage({
     ? parseInt(params.year)
     : new Date().getFullYear();
 
-  const [revenueByMonth, topMedicines, incomeVsCost] = await Promise.all([
+  const [revenueByMonth, topMedicines, salesVsIncome] = await Promise.all([
     getRevenueByMonth(year),
-    getTopMedicinesByRevenue(),
-    getIncomeVsCost(year),
+    getTopMedicinesByRevenue(5),
+    getSalesVsOtherIncome(year),
   ]);
 
   const monthlyRevenueData = MONTH_NAMES.map((label, i) => {
@@ -48,105 +49,104 @@ export default async function ReportsPage({
   });
 
   const topMedicinesData = topMedicines.map((m) => ({
-    name: m.name,
+    name: m.name.split(" ")[0] ?? m.name,
     revenue: m.revenue,
   }));
 
-  const incomeVsCostData = MONTH_NAMES.map((label, i) => {
-    const row = incomeVsCost.find((r) => r.month === i + 1);
+  const salesVsIncomeData = MONTH_NAMES.map((label, i) => {
+    const row = salesVsIncome.find((r) => r.month === i + 1);
     return {
       month: label,
-      income: row?.income ?? 0,
-      cost: row?.cost ?? 0,
+      salesRevenue: row?.salesRevenue ?? 0,
+      otherIncome: row?.otherIncome ?? 0,
     };
   });
 
   const totalRevenue = monthlyRevenueData.reduce((s, m) => s + m.revenue, 0);
-  const topMed = topMedicinesData[0];
+  const peak = monthlyRevenueData.reduce(
+    (best, m) => (m.revenue > best.revenue ? m : best),
+    monthlyRevenueData[0] ?? { month: "—", revenue: 0 },
+  );
+
+  const years = [year - 1, year, year + 1].filter(
+    (y) => y >= 2020 && y <= new Date().getFullYear() + 1,
+  );
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
-        <p className="text-muted-foreground">
-          Sales analytics and income overview for {year}.
-        </p>
+    <div className="mx-auto max-w-5xl space-y-5 md:space-y-6">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight md:text-2xl">
+            Reports
+          </h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Sales analytics for {year}.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="leyu-status-ok">Live</span>
+          <div className="flex gap-1">
+            {years.map((y) => (
+              <Link
+                key={y}
+                href={`/reports?year=${y}`}
+                className={
+                  y === year
+                    ? "bg-primary text-primary-foreground rounded-full px-3 py-1 text-xs font-semibold"
+                    : "bg-secondary text-muted-foreground rounded-full px-3 py-1 text-xs font-medium"
+                }
+              >
+                {y}
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Summary row */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-muted-foreground text-sm font-medium">
-              Total Revenue ({year})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{formatMoney(totalRevenue)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-muted-foreground text-sm font-medium">
-              Best Selling Medicine
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="truncate text-2xl font-bold">
-              {topMed?.name ?? "—"}
+      <div className="leyu-surface-card p-4 md:p-6">
+        <div className="mb-4 flex items-end justify-between gap-3">
+          <div>
+            <p className="text-muted-foreground text-xs font-medium">
+              Monthly revenue
             </p>
-            <p className="text-muted-foreground text-sm">
-              {topMed ? `${formatMoney(topMed.revenue)} revenue` : "—"}
+            <p className="text-2xl font-bold tabular-nums">
+              {formatMoney(totalRevenue)}
             </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-muted-foreground text-sm font-medium">
-              Medicines Tracked
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{topMedicinesData.length}</p>
-          </CardContent>
-        </Card>
+            <p className="text-muted-foreground text-xs">
+              Peak {peak.month}: {formatMoney(peak.revenue)}
+            </p>
+          </div>
+        </div>
+        <div className="h-[220px] md:h-[280px]">
+          <MonthlyRevenueBarChart data={monthlyRevenueData} />
+        </div>
       </div>
 
-      {/* Charts */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Monthly Revenue ({year})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <MonthlyRevenueBarChart data={monthlyRevenueData} />
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="leyu-surface-card p-4 md:p-6">
+          <h2 className="mb-4 text-sm font-semibold">
+            Top medicines by revenue
+          </h2>
+          {topMedicinesData.length === 0 ? (
+            <p className="text-muted-foreground py-12 text-center text-sm">
+              No sales data yet.
+            </p>
+          ) : (
+            <div className="h-[220px] md:h-[280px]">
+              <TopMedicinesBarChart data={topMedicinesData} />
+            </div>
+          )}
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Medicines by Revenue</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {topMedicinesData.length === 0 ? (
-              <p className="text-muted-foreground py-16 text-center text-sm">
-                No sales data yet.
-              </p>
-            ) : (
-              <TopMedicinesPieChart data={topMedicinesData} />
-            )}
-          </CardContent>
-        </Card>
+        <div className="leyu-surface-card p-4 md:p-6">
+          <h2 className="mb-4 text-sm font-semibold">
+            Direct sales vs other income
+          </h2>
+          <div className="h-[220px] md:h-[280px]">
+            <SalesVsOtherIncomeBarChart data={salesVsIncomeData} />
+          </div>
+        </div>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Sales Revenue vs Manual Income ({year})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <IncomeVsCostBarChart data={incomeVsCostData} />
-        </CardContent>
-      </Card>
     </div>
   );
 }

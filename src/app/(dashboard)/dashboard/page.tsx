@@ -1,138 +1,154 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getSession } from "@/server/session";
 import {
   getSummaryStats,
   getDailyRevenueLast30Days,
 } from "@/features/reports/queries";
-import { RevenueLineChart } from "@/components/charts/charts";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
+import { RevenueBarChart } from "@/components/charts/charts";
 import { formatMoney } from "@/lib/utils";
 import type { Role } from "@/server/authz";
+import { ShoppingCart, Plus } from "lucide-react";
 
 export const metadata = { title: "Overview | leyuMed" };
 
+function greetingForHour(hour: number) {
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
 export default async function DashboardPage() {
   const session = await getSession();
-  const role = (session?.user as { role?: Role } | undefined)?.role ?? "PHARMACIST";
+  const role =
+    (session?.user as { role?: Role } | undefined)?.role ?? "PHARMACIST";
   if (role !== "ADMIN") {
     redirect("/sales");
   }
+
   const [stats, dailyRevenue] = await Promise.all([
     getSummaryStats(),
     getDailyRevenueLast30Days(),
   ]);
 
+  const firstName = session?.user.name?.split(" ")[0] ?? "there";
+  const greeting = greetingForHour(new Date().getHours());
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back, {session?.user.name ?? "User"}.
-        </p>
+    <div className="mx-auto max-w-5xl space-y-5 md:space-y-6">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight md:text-2xl">
+            {greeting}, {firstName}
+          </h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Here&apos;s how leyuMed is doing right now.
+          </p>
+        </div>
+        <span className="leyu-status-ok shrink-0">Live</span>
       </div>
 
-      {/* Summary cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-muted-foreground text-sm font-medium">
-              Total Medicines
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{stats.medicineCount}</p>
-            <Link
-              href="/medicines"
-              className="text-primary text-xs hover:underline"
-            >
-              View inventory
-            </Link>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+        <div className="leyu-metric-card">
+          <p className="text-muted-foreground text-xs font-medium">Medicines</p>
+          <p className="mt-1 text-2xl font-bold tabular-nums">
+            {stats.medicineCount}
+          </p>
+          <p className="text-muted-foreground mt-1 text-xs">SKUs in catalog</p>
+        </div>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-muted-foreground text-sm font-medium">
-              Today&apos;s Revenue
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
-              {formatMoney(stats.todayRevenue)}
-            </p>
-            <Link
-              href="/sales"
-              className="text-primary text-xs hover:underline"
-            >
-              View sales
-            </Link>
-          </CardContent>
-        </Card>
+        <div className="leyu-metric-card">
+          <p className="text-muted-foreground text-xs font-medium">
+            Stock on hand
+          </p>
+          <p className="mt-1 text-2xl font-bold tabular-nums">
+            {stats.stockOnHand.toLocaleString()}
+          </p>
+          <p className="text-muted-foreground mt-1 text-xs">Total units</p>
+        </div>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-muted-foreground text-sm font-medium">
-              This Month&apos;s Revenue
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
-              {formatMoney(stats.monthlyRevenue)}
-            </p>
-            <Link
-              href="/reports"
-              className="text-primary text-xs hover:underline"
-            >
-              View reports
-            </Link>
-          </CardContent>
-        </Card>
+        <div className="leyu-metric-card">
+          <p className="text-muted-foreground text-xs font-medium">
+            Revenue · 30d
+          </p>
+          <p className="mt-1 text-2xl font-bold tabular-nums">
+            {formatMoney(stats.revenue30d)}
+          </p>
+          <p className="text-muted-foreground mt-1 text-xs">
+            From recorded sales
+          </p>
+        </div>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-muted-foreground text-sm font-medium">
-              Low Stock Alerts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <p className="text-2xl font-bold">{stats.lowStock}</p>
-              {stats.lowStock > 0 && (
-                <Badge variant="destructive">Action needed</Badge>
-              )}
-            </div>
-            <Link
-              href="/medicines"
-              className="text-primary text-xs hover:underline"
-            >
-              Check inventory
-            </Link>
-          </CardContent>
-        </Card>
+        <div
+          className={
+            stats.needsAttention > 0
+              ? "rounded-2xl border-0 bg-amber-50 p-4 shadow-none"
+              : "leyu-metric-card"
+          }
+        >
+          <p
+            className={
+              stats.needsAttention > 0
+                ? "text-xs font-medium text-amber-800"
+                : "text-muted-foreground text-xs font-medium"
+            }
+          >
+            Low / out of stock
+          </p>
+          <p
+            className={
+              stats.needsAttention > 0
+                ? "mt-1 text-2xl font-bold tabular-nums text-amber-900"
+                : "mt-1 text-2xl font-bold tabular-nums"
+            }
+          >
+            {stats.needsAttention}
+          </p>
+          <p
+            className={
+              stats.needsAttention > 0
+                ? "mt-1 text-xs text-amber-700"
+                : "text-muted-foreground mt-1 text-xs"
+            }
+          >
+            Needs attention
+          </p>
+        </div>
       </div>
 
-      {/* 30-day revenue chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Revenue — Last 30 Days</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {dailyRevenue.length === 0 ? (
-            <p className="text-muted-foreground py-16 text-center text-sm">
-              No sales recorded yet. Start by recording a sale.
-            </p>
-          ) : (
-            <RevenueLineChart data={dailyRevenue} />
-          )}
-        </CardContent>
-      </Card>
+      <div className="leyu-surface-card p-4 md:p-6">
+        <h2 className="mb-4 text-sm font-semibold">Revenue · last 30 days</h2>
+        {dailyRevenue.length === 0 ? (
+          <p className="text-muted-foreground py-12 text-center text-sm">
+            No sales recorded yet. Start by recording a sale.
+          </p>
+        ) : (
+          <div className="h-[180px] md:h-[240px]">
+            <RevenueBarChart data={dailyRevenue} />
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <Link
+          href="/sales"
+          className="leyu-surface-card hover:border-primary/40 flex min-h-14 items-center justify-center gap-2 px-4 py-3 text-sm font-semibold transition-colors"
+        >
+          <ShoppingCart className="text-primary size-4" aria-hidden />
+          Record a sale
+        </Link>
+        <Link
+          href="/medicines"
+          className="leyu-surface-card hover:border-primary/40 flex min-h-14 items-center justify-center gap-2 px-4 py-3 text-sm font-semibold transition-colors"
+        >
+          <Plus className="text-primary size-4" aria-hidden />
+          Add medicine
+        </Link>
+      </div>
+
+      <p className="text-muted-foreground text-center text-xs">
+        Low stock is flagged in amber so problems surface quickly.
+      </p>
     </div>
   );
 }

@@ -39,6 +39,11 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-surface: var(--brand-surface);
+  --color-brand-bg: var(--brand-bg);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -49,38 +54,44 @@
 }
 
 :root {
-  --background: oklch(0.973 0.008 235);
-  --foreground: oklch(0.145 0 0);
+  --brand-primary: #1e6fd9;
+  --brand-surface: #e8f1fc;
+  --brand-bg: #f5f8fc;
+  --background: oklch(0.978 0.008 235);
+  --foreground: oklch(0.22 0.02 254);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.22 0.02 254);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.22 0.02 254);
   --primary: oklch(0.523 0.156 254.6);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.945 0.02 235);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.945 0.02 235);
-  --accent-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.945 0.028 248);
+  --secondary-foreground: oklch(0.28 0.04 254);
+  --muted: oklch(0.965 0.012 235);
+  --muted-foreground: oklch(0.5 0.02 254);
+  --accent: oklch(0.945 0.028 248);
+  --accent-foreground: oklch(0.28 0.04 254);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
+  --warning: oklch(0.92 0.06 75);
+  --warning-foreground: oklch(0.45 0.12 55);
+  --border: oklch(0.91 0.015 240);
+  --input: oklch(0.91 0.015 240);
   --ring: oklch(0.523 0.156 254.6);
-  --chart-1: oklch(0.523 0.156 254.6);
-  --chart-2: oklch(0.72 0.12 240);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
+  --chart-1: #1e6fd9;
+  --chart-2: #7eb0ef;
+  --chart-3: #4a8de0;
+  --chart-4: #c5daf5;
+  --chart-5: #0f4a9a;
+  --radius: 0.75rem;
   --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-foreground: oklch(0.22 0.02 254);
   --sidebar-primary: oklch(0.523 0.156 254.6);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.945 0.02 235);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-accent: oklch(0.945 0.028 248);
+  --sidebar-accent-foreground: oklch(0.28 0.04 254);
+  --sidebar-border: oklch(0.91 0.015 240);
   --sidebar-ring: oklch(0.523 0.156 254.6);
+  --shadow-card: 0 1px 3px rgb(30 111 217 / 0.06);
 }
 
 .dark {
@@ -99,14 +110,16 @@
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --warning: oklch(0.35 0.08 75);
+  --warning-foreground: oklch(0.85 0.1 75);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.65 0.15 254.6);
-  --chart-1: oklch(0.65 0.15 254.6);
-  --chart-2: oklch(0.72 0.12 240);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --chart-1: #5b9ef0;
+  --chart-2: #7eb0ef;
+  --chart-3: #4a8de0;
+  --chart-4: #2a5f9e;
+  --chart-5: #c5daf5;
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.65 0.15 254.6);
@@ -126,5 +139,26 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer components {
+  .leyu-metric-card {
+    @apply rounded-2xl border-0 bg-secondary p-4 shadow-none;
+  }
+  .leyu-surface-card {
+    @apply rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-card)];
+  }
+  .leyu-list-row {
+    @apply flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-card p-3;
+  }
+  .leyu-status-ok {
+    @apply rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary;
+  }
+  .leyu-status-low {
+    @apply rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700;
+  }
+  .leyu-status-out {
+    @apply rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-700;
   }
 }

@@ -2,7 +2,7 @@ import { getSales, getTodayRevenue } from "@/features/sales/actions";
 import { getMedicines } from "@/features/medicines/actions";
 import { SalesClient } from "./sales-client";
 
-export const metadata = { title: "Sales | PharmacyApp" };
+export const metadata = { title: "Sales | leyuMed" };
 
 export default async function SalesPage({
   searchParams,
@@ -20,20 +20,12 @@ export default async function SalesPage({
   ]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Sales</h1>
-        <p className="text-muted-foreground">
-          Record sales and view transaction history.
-        </p>
-      </div>
-      <SalesClient
-        sales={sales}
-        medicines={medicines}
-        todayRevenue={todayRevenue}
-        from={params.from ?? ""}
-        to={params.to ?? ""}
-      />
-    </div>
+    <SalesClient
+      sales={sales}
+      medicines={medicines}
+      todayRevenue={todayRevenue}
+      from={params.from ?? ""}
+      to={params.to ?? ""}
+    />
   );
 }

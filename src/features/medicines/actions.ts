@@ -2,10 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/server/db";
-import { requireAdmin, getSessionRole } from "@/server/authz";
+import { requireAdmin, requireSession, getSessionRole } from "@/server/authz";
 import { medicineSchema, type MedicineInput } from "./validators";
 
 export async function getMedicines(query?: string, category?: string) {
+  await requireSession();
   const role = await getSessionRole();
   const select =
     role === "ADMIN"
@@ -41,6 +42,7 @@ export async function getMedicines(query?: string, category?: string) {
 }
 
 export async function getMedicineCategories() {
+  await requireSession();
   const categories = await db.medicine.findMany({
     select: { category: true },
     distinct: ["category"],
@@ -52,7 +54,7 @@ export async function getMedicineCategories() {
 export async function createMedicine(input: MedicineInput) {
   await requireAdmin();
   const data = medicineSchema.parse(input);
-  return db.medicine.create({
+  const result = await db.medicine.create({
     data: {
       name: data.name,
       category: data.category,
@@ -64,6 +66,9 @@ export async function createMedicine(input: MedicineInput) {
       description: data.description ?? null,
     },
   });
+  revalidatePath("/medicines");
+  revalidatePath("/dashboard");
+  return result;
 }
 
 export async function updateMedicine(id: string, input: MedicineInput) {
@@ -94,6 +99,7 @@ export async function deleteMedicine(id: string) {
 }
 
 export async function getLowStockMedicines(threshold = 10) {
+  await requireSession();
   return db.medicine.findMany({
     where: { quantity: { lte: threshold } },
     orderBy: { quantity: "asc" },

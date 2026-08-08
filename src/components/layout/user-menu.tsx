@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { authClient } from "@/features/auth/auth-client";
+import type { NavRole } from "./sidebar";
 
 interface UserMenuProps {
   user: {
@@ -19,9 +20,10 @@ interface UserMenuProps {
     email: string;
     image?: string | null;
   };
+  role?: NavRole;
 }
 
-export function UserMenu({ user }: UserMenuProps) {
+export function UserMenu({ user, role = "PHARMACIST" }: UserMenuProps) {
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
 
@@ -31,6 +33,8 @@ export function UserMenu({ user }: UserMenuProps) {
     .join("")
     .toUpperCase()
     .slice(0, 2);
+
+  const homeHref = role === "ADMIN" ? "/dashboard" : "/sales";
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -45,16 +49,18 @@ export function UserMenu({ user }: UserMenuProps) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="focus-visible:ring-ring flex items-center space-x-2 rounded-full focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none">
-        <Avatar className="h-8 w-8">
+      <DropdownMenuTrigger className="focus-visible:ring-ring flex items-center rounded-full focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none">
+        <Avatar className="size-9">
           <AvatarImage src={user.image ?? undefined} alt={user.name} />
-          <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+          <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+            {initials}
+          </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.name}</p>
+            <p className="text-sm leading-none font-medium">{user.name}</p>
             <p className="text-muted-foreground text-xs leading-none">
               {user.email}
             </p>
@@ -62,10 +68,10 @@ export function UserMenu({ user }: UserMenuProps) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onClick={() => router.push("/dashboard")}
+          onClick={() => router.push(homeHref)}
           className="cursor-pointer"
         >
-          Dashboard
+          {role === "ADMIN" ? "Overview" : "Sales"}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

@@ -29,10 +29,15 @@ export function MobileBottomNav({ role }: { role: NavRole }) {
 
   return (
     <nav
-      className="bg-background/95 supports-[backdrop-filter]:bg-background/80 fixed inset-x-0 bottom-0 z-50 border-t backdrop-blur md:hidden"
+      className="bg-card/95 supports-[backdrop-filter]:bg-card/90 fixed inset-x-0 bottom-0 z-50 border-t border-border/60 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
       aria-label="Primary"
     >
-      <div className="grid" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
+      <div
+        className="grid"
+        style={{
+          gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))`,
+        }}
+      >
         {items.map((tab) => {
           const Icon = tab.icon;
           const isActive = pathname === tab.href;
@@ -42,11 +47,11 @@ export function MobileBottomNav({ role }: { role: NavRole }) {
               href={tab.href}
               aria-current={isActive ? "page" : undefined}
               className={cn(
-                "flex flex-col items-center gap-1 py-2.5 text-xs font-medium transition-colors",
+                "flex min-h-14 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors",
                 isActive ? "text-primary" : "text-muted-foreground",
               )}
             >
-              <Icon className="size-5" aria-hidden />
+              <Icon className="size-5" aria-hidden strokeWidth={isActive ? 2.25 : 1.75} />
               {tab.label}
             </Link>
           );

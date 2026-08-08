@@ -1,8 +1,10 @@
 "use server";
 
 import { db } from "@/server/db";
+import { requireAdmin } from "@/server/authz";
 
 export async function getRevenueByMonth(year: number) {
+  await requireAdmin();
   const result = await db.$queryRaw<
     Array<{ month: number; revenue: number }>
   >`
@@ -18,6 +20,7 @@ export async function getRevenueByMonth(year: number) {
 }
 
 export async function getDailyRevenueLast30Days() {
+  await requireAdmin();
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   thirtyDaysAgo.setHours(0, 0, 0, 0);
@@ -37,6 +40,7 @@ export async function getDailyRevenueLast30Days() {
 }
 
 export async function getTopMedicinesByRevenue(limit = 8) {
+  await requireAdmin();
   const result = await db.$queryRaw<
     Array<{ name: string; revenue: number; quantity: number }>
   >`
@@ -53,14 +57,16 @@ export async function getTopMedicinesByRevenue(limit = 8) {
   return result;
 }
 
-export async function getIncomeVsCost(year: number) {
+/** Sales revenue vs other (manual) income entries by month. */
+export async function getSalesVsOtherIncome(year: number) {
+  await requireAdmin();
   const result = await db.$queryRaw<
-    Array<{ month: number; income: number; cost: number }>
+    Array<{ month: number; salesRevenue: number; otherIncome: number }>
   >`
     SELECT
       COALESCE(s.month, i.month)::int AS month,
-      COALESCE(s.revenue, 0)::float AS income,
-      COALESCE(i.total, 0)::float AS cost
+      COALESCE(s.revenue, 0)::float AS "salesRevenue",
+      COALESCE(i.total, 0)::float AS "otherIncome"
     FROM (
       SELECT EXTRACT(MONTH FROM "soldAt")::int AS month,
              SUM("totalAmount") AS revenue
@@ -80,16 +86,45 @@ export async function getIncomeVsCost(year: number) {
   return result;
 }
 
+/** @deprecated Use getSalesVsOtherIncome */
+export async function getIncomeVsCost(year: number) {
+  const rows = await getSalesVsOtherIncome(year);
+  return rows.map((r) => ({
+    month: r.month,
+    income: r.salesRevenue,
+    cost: r.otherIncome,
+  }));
+}
+
 export async function getSummaryStats() {
-  const [medicineCount, todayRevenue, monthlyRevenue, lowStock] =
+  await requireAdmin();
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  thirtyDaysAgo.setHours(0, 0, 0, 0);
+
+  const [medicineCount, stockAgg, todayRevenue, revenue30d, lowStock, outOfStock] =
     await Promise.all([
       db.medicine.count(),
+      db.medicine.aggregate({ _sum: { quantity: true } }),
       getTodayRevenue(),
-      getCurrentMonthRevenue(),
-      db.medicine.count({ where: { quantity: { lte: 10 } } }),
+      db.sale.aggregate({
+        where: { soldAt: { gte: thirtyDaysAgo } },
+        _sum: { totalAmount: true },
+      }),
+      db.medicine.count({ where: { quantity: { gt: 0, lte: 10 } } }),
+      db.medicine.count({ where: { quantity: 0 } }),
     ]);
 
-  return { medicineCount, todayRevenue, monthlyRevenue, lowStock };
+  return {
+    medicineCount,
+    stockOnHand: stockAgg._sum.quantity ?? 0,
+    todayRevenue,
+    revenue30d: revenue30d._sum.totalAmount ?? 0,
+    monthlyRevenue: await getCurrentMonthRevenue(),
+    lowStock,
+    outOfStock,
+    needsAttention: lowStock + outOfStock,
+  };
 }
 
 async function getTodayRevenue() {

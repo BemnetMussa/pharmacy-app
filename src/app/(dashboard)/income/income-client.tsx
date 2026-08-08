@@ -42,6 +42,7 @@ import {
   deleteIncomeEntry,
 } from "@/features/income/actions";
 import { incomeEntrySchema } from "@/features/income/validators";
+import { formatMoney } from "@/lib/utils";
 
 type IncomeEntry = {
   id: string;
@@ -194,7 +195,7 @@ export function IncomeClient({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold">${monthlyTotal.toFixed(2)}</p>
+          <p className="text-3xl font-bold">{formatMoney(monthlyTotal)}</p>
           <p className="text-muted-foreground text-sm">
             {entries.length} entr{entries.length !== 1 ? "ies" : "y"} this
             month
@@ -271,7 +272,7 @@ export function IncomeClient({
                     {entry.description}
                   </TableCell>
                   <TableCell className="text-right font-medium">
-                    ${entry.amount.toFixed(2)}
+                    {formatMoney(entry.amount)}
                   </TableCell>
                   <TableCell>
                     {new Date(entry.date).toLocaleDateString()}
