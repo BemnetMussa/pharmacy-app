@@ -120,13 +120,24 @@ export function MonthlyRevenueBarChart({
 }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data} margin={{ top: 5, right: 8, left: 0, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#E8F1FC" />
-        <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+      <BarChart data={data} margin={{ top: 5, right: 4, left: -8, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#E8F1FC" vertical={false} />
+        <XAxis
+          dataKey="month"
+          tick={{ fontSize: 10, fill: "#6b7c93" }}
+          axisLine={false}
+          tickLine={false}
+        />
         <YAxis
-          tick={{ fontSize: 11 }}
-          tickFormatter={(v) => formatMoney(Number(v))}
-          width={72}
+          tick={{ fontSize: 10, fill: "#6b7c93" }}
+          tickFormatter={(v) => {
+            const n = Number(v);
+            if (n >= 1000) return `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}k`;
+            return String(Math.round(n));
+          }}
+          width={36}
+          axisLine={false}
+          tickLine={false}
         />
         <Tooltip formatter={fmtCurrency} contentStyle={tooltipStyle} />
         <Bar dataKey="revenue" fill={BRAND} radius={[6, 6, 0, 0]} />
@@ -138,7 +149,7 @@ export function MonthlyRevenueBarChart({
 export function TopMedicinesBarChart({
   data,
 }: {
-  data: Array<{ name: string; revenue: number }>;
+  data: Array<{ name: string; transactions: number }>;
 }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -146,21 +157,35 @@ export function TopMedicinesBarChart({
         data={data}
         layout="vertical"
         margin={{ top: 5, right: 16, left: 8, bottom: 5 }}
+        barCategoryGap="20%"
       >
         <CartesianGrid strokeDasharray="3 3" stroke="#E8F1FC" horizontal={false} />
         <XAxis
           type="number"
-          tick={{ fontSize: 11 }}
-          tickFormatter={(v) => formatMoney(Number(v))}
+          allowDecimals={false}
+          tick={{ fontSize: 11, fill: "#6b7c93" }}
+          axisLine={false}
+          tickLine={false}
         />
         <YAxis
           type="category"
           dataKey="name"
-          tick={{ fontSize: 11 }}
-          width={90}
+          tick={{ fontSize: 11, fill: "#6b7c93" }}
+          width={96}
+          axisLine={false}
+          tickLine={false}
         />
-        <Tooltip formatter={fmtCurrency} contentStyle={tooltipStyle} />
-        <Bar dataKey="revenue" fill={BRAND} radius={[0, 6, 6, 0]} />
+        <Tooltip
+          formatter={(v) => [`${Number(v ?? 0)} sales`, "Transactions"]}
+          contentStyle={tooltipStyle}
+          cursor={{ fill: BRAND_PALE, opacity: 0.35 }}
+        />
+        <Bar
+          dataKey="transactions"
+          fill={BRAND}
+          radius={[0, 6, 6, 0]}
+          maxBarSize={28}
+        />
       </BarChart>
     </ResponsiveContainer>
   );
@@ -170,7 +195,7 @@ export function TopMedicinesBarChart({
 export function TopMedicinesPieChart({
   data,
 }: {
-  data: Array<{ name: string; revenue: number }>;
+  data: Array<{ name: string; transactions: number }>;
 }) {
   return <TopMedicinesBarChart data={data} />;
 }
@@ -180,32 +205,66 @@ export function SalesVsOtherIncomeBarChart({
 }: {
   data: Array<{ month: string; salesRevenue: number; otherIncome: number }>;
 }) {
+  // Drop empty months so sparse years don't squash 24 bars into one phone width.
+  const activeMonths = data.filter(
+    (d) => d.salesRevenue > 0 || d.otherIncome > 0,
+  );
+  const chartData = activeMonths.length > 0 ? activeMonths : data;
+
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data} margin={{ top: 5, right: 8, left: 0, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#E8F1FC" />
-        <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+      <BarChart
+        data={chartData}
+        margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
+        barCategoryGap="28%"
+        barGap={6}
+      >
+        <CartesianGrid strokeDasharray="3 3" stroke="#E8F1FC" vertical={false} />
+        <XAxis
+          dataKey="month"
+          tick={{ fontSize: 12, fill: "#6b7c93" }}
+          axisLine={false}
+          tickLine={false}
+        />
         <YAxis
-          tick={{ fontSize: 11 }}
-          tickFormatter={(v) => formatMoney(Number(v))}
-          width={72}
+          tick={{ fontSize: 10, fill: "#6b7c93" }}
+          tickFormatter={(v) => {
+            const n = Number(v);
+            if (n >= 1000) return `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}k`;
+            return String(Math.round(n));
+          }}
+          width={40}
+          axisLine={false}
+          tickLine={false}
         />
         <Tooltip
-          formatter={(v) => [formatMoney(Number(v ?? 0)), ""]}
+          formatter={(v, name) => [
+            formatMoney(Number(v ?? 0)),
+            name === "salesRevenue" ? "Direct sales" : "Other income",
+          ]}
           contentStyle={tooltipStyle}
+          cursor={{ fill: BRAND_PALE, opacity: 0.35 }}
         />
-        <Legend />
+        <Legend
+          verticalAlign="top"
+          align="right"
+          iconType="circle"
+          iconSize={8}
+          wrapperStyle={{ fontSize: 12, paddingBottom: 8 }}
+        />
         <Bar
           dataKey="salesRevenue"
           name="Direct sales"
           fill={BRAND_SOFT}
-          radius={[4, 4, 0, 0]}
+          radius={[6, 6, 0, 0]}
+          maxBarSize={36}
         />
         <Bar
           dataKey="otherIncome"
           name="Other income"
           fill={BRAND}
-          radius={[4, 4, 0, 0]}
+          radius={[6, 6, 0, 0]}
+          maxBarSize={36}
         />
       </BarChart>
     </ResponsiveContainer>

@@ -39,22 +39,39 @@ export async function getDailyRevenueLast30Days() {
   return result;
 }
 
-export async function getTopMedicinesByRevenue(limit = 8) {
+/** Rank medicines by how often they were sold (sale count), not revenue. */
+export async function getTopMedicinesByTransactions(
+  limit = 8,
+  year?: number,
+) {
   await requireAdmin();
+  const targetYear = year ?? new Date().getFullYear();
   const result = await db.$queryRaw<
-    Array<{ name: string; revenue: number; quantity: number }>
+    Array<{
+      name: string;
+      transactions: number;
+      revenue: number;
+      quantity: number;
+    }>
   >`
     SELECT
       m.name,
+      COUNT(s.id)::int AS transactions,
       SUM(s."totalAmount")::float AS revenue,
       SUM(s.quantity)::int AS quantity
     FROM "Sale" s
     JOIN "Medicine" m ON m.id = s."medicineId"
+    WHERE EXTRACT(YEAR FROM s."soldAt") = ${targetYear}
     GROUP BY m.name
-    ORDER BY revenue DESC
+    ORDER BY transactions DESC, revenue DESC
     LIMIT ${limit}
   `;
   return result;
+}
+
+/** @deprecated Use getTopMedicinesByTransactions */
+export async function getTopMedicinesByRevenue(limit = 8, year?: number) {
+  return getTopMedicinesByTransactions(limit, year);
 }
 
 /** Sales revenue vs other (manual) income entries by month. */

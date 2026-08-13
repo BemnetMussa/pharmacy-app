@@ -165,3 +165,21 @@
     @apply font-mono tabular-nums;
   }
 }
+
+@media print {
+  nav,
+  aside,
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  .leyu-surface-card,
+  .leyu-metric-card {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+}
