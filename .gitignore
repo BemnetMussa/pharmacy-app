@@ -52,3 +52,4 @@ src/generated/
 
 # local embedded Postgres data (dev only)
 .local-pg/
+.env*

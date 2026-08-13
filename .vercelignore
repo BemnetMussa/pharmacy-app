@@ -1,0 +1,10 @@
+.next
+.local-pg
+.cursor
+coverage
+.git
+*.log
+tsconfig.tsbuildinfo
+.env
+.env.*
+!.env.example

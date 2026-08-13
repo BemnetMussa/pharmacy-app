@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/layout/theme-provider";
+import { PwaRegister } from "@/components/layout/pwa-register";
 import "./globals.css";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -20,6 +21,32 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "leyuMed",
   description: "leyuMed — pharmacy management: inventory, sales, and reports",
+  applicationName: "leyuMed",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "leyuMed",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/icon-180.png", sizes: "180x180", type: "image/png" }],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#1E6FD9" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f1724" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -34,7 +61,10 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="font-sans flex min-h-full flex-col">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          {children}
+          <PwaRegister />
+        </ThemeProvider>
       </body>
     </html>
   );
