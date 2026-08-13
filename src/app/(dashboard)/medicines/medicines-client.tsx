@@ -86,10 +86,12 @@ function MedicineForm({
   initial,
   onSave,
   onCancel,
+  onRequestDelete,
 }: {
   initial?: Medicine;
   onSave: (data: MedicineInput) => void;
   onCancel: () => void;
+  onRequestDelete?: () => void;
 }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [pending, startTransition] = useTransition();
@@ -224,13 +226,27 @@ function MedicineForm({
         </div>
       </div>
 
-      <div className="flex justify-end gap-2 pt-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit" className="h-11" disabled={pending}>
-          {pending ? "Saving…" : initial ? "Save Changes" : "Add Medicine"}
-        </Button>
+      <div className="space-y-4 pt-2">
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button type="submit" className="h-11" disabled={pending}>
+            {pending ? "Saving…" : initial ? "Save Changes" : "Add Medicine"}
+          </Button>
+        </div>
+
+        {initial && onRequestDelete ? (
+          <div className="border-border/60 border-t pt-4">
+            <button
+              type="button"
+              onClick={onRequestDelete}
+              className="text-muted-foreground hover:text-destructive text-xs underline-offset-2 hover:underline"
+            >
+              Delete this medicine
+            </button>
+          </div>
+        ) : null}
       </div>
     </form>
   );
@@ -402,12 +418,19 @@ export function MedicinesClient({
           visible.map((med) => {
             const status = getStockStatus(med.quantity);
             return (
-              <div
+              <button
                 key={med.id}
+                type="button"
+                disabled={!isAdmin}
+                onClick={() => {
+                  if (isAdmin) setEditMedicine(med);
+                }}
                 className={cn(
-                  "leyu-list-row",
+                  "leyu-list-row w-full text-left",
                   status === "Low" && "border-amber-200 bg-amber-50/40",
                   status === "Out" && "border-red-200 bg-red-50/40",
+                  isAdmin && "hover:border-primary/30 active:bg-secondary/60",
+                  !isAdmin && "cursor-default",
                 )}
               >
                 <div className="min-w-0 flex-1 space-y-0.5">
@@ -419,30 +442,15 @@ export function MedicinesClient({
                     Sell: {formatMoney(med.unitPrice)}
                   </p>
                 </div>
-                <div className="flex shrink-0 flex-col items-end gap-2">
+                <div className="flex shrink-0 flex-col items-end gap-1">
                   <StockPill status={status} />
                   {isAdmin && (
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 px-2 text-xs"
-                        onClick={() => setEditMedicine(med)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:text-destructive h-8 px-2 text-xs"
-                        onClick={() => setDeleteTarget(med)}
-                      >
-                        Del
-                      </Button>
-                    </div>
+                    <span className="text-muted-foreground text-[11px]">
+                      Tap to edit
+                    </span>
                   )}
                 </div>
-              </div>
+              </button>
             );
           })
         )}
@@ -460,7 +468,7 @@ export function MedicinesClient({
               <TableHead className="text-right">Sale Price</TableHead>
               {isAdmin && <TableHead className="text-right">Cost</TableHead>}
               <TableHead>Status</TableHead>
-              {isAdmin && <TableHead className="text-right">Actions</TableHead>}
+              {isAdmin && <TableHead className="text-right"> </TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -477,7 +485,13 @@ export function MedicinesClient({
               visible.map((med) => {
                 const status = getStockStatus(med.quantity);
                 return (
-                  <TableRow key={med.id}>
+                  <TableRow
+                    key={med.id}
+                    className={cn(isAdmin && "hover:bg-secondary/40 cursor-pointer")}
+                    onClick={() => {
+                      if (isAdmin) setEditMedicine(med);
+                    }}
+                  >
                     <TableCell className="font-medium">{med.name}</TableCell>
                     <TableCell>{med.category}</TableCell>
                     <TableCell className="leyu-money text-right">
@@ -497,23 +511,9 @@ export function MedicinesClient({
                     </TableCell>
                     {isAdmin && (
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setEditMedicine(med)}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => setDeleteTarget(med)}
-                          >
-                            Delete
-                          </Button>
-                        </div>
+                        <span className="text-primary text-sm font-medium">
+                          Edit
+                        </span>
                       </TableCell>
                     )}
                   </TableRow>
@@ -563,6 +563,9 @@ export function MedicinesClient({
                 router.refresh();
               }}
               onCancel={() => setEditMedicine(null)}
+              onRequestDelete={() => {
+                setDeleteTarget(editMedicine);
+              }}
             />
           )}
         </DialogContent>
@@ -570,24 +573,28 @@ export function MedicinesClient({
 
       <AlertDialog
         open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Medicine</AlertDialogTitle>
+            <AlertDialogTitle>Delete this medicine?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete{" "}
-              <strong>{deleteTarget?.name}</strong>? This cannot be undone and
-              will also delete associated sales.
+              This permanently removes <strong>{deleteTarget?.name}</strong>{" "}
+              and its sales history. This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Keep medicine</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
+              onClick={() => {
+                handleDelete();
+                setEditMedicine(null);
+              }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              Yes, delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
