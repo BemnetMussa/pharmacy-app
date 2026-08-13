@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -29,8 +29,8 @@ import {
 import { createSale } from "@/features/sales/actions";
 import { saleSchema } from "@/features/sales/validators";
 import type { SaleInput } from "@/features/sales/validators";
-import { formatMoney } from "@/lib/utils";
-import { Check, Plus } from "lucide-react";
+import { formatMoney, cn } from "@/lib/utils";
+import { Check, Plus, CalendarDays } from "lucide-react";
 
 type Sale = {
   id: string;
@@ -168,7 +168,8 @@ function SaleForm({
         {selectedMed && (
           <p className="text-muted-foreground text-xs">
             {selectedMed.quantity} {selectedMed.unit} in stock ·{" "}
-            {formatMoney(selectedMed.unitPrice)} each
+            <span className="leyu-money">{formatMoney(selectedMed.unitPrice)}</span>{" "}
+            each
           </p>
         )}
       </div>
@@ -203,11 +204,16 @@ function SaleForm({
           className="h-12"
           disabled={pending || !selectedMed}
         >
-          {pending
-            ? "Saving…"
-            : selectedMed
-              ? `Confirm sale · ${formatMoney(total)}`
-              : "Record sale"}
+          {pending ? (
+            "Saving…"
+          ) : selectedMed ? (
+            <>
+              Confirm sale ·{" "}
+              <span className="leyu-money">{formatMoney(total)}</span>
+            </>
+          ) : (
+            "Record sale"
+          )}
         </Button>
       </div>
     </form>
@@ -234,7 +240,9 @@ function SaleSuccess({
         <h3 className="text-xl font-bold">Sale recorded</h3>
         <p className="text-muted-foreground text-sm">
           {sale.medicine.name} · {sale.quantity} {sale.medicine.unit} ·{" "}
-          {formatMoney(sale.totalAmount)}
+          <span className="leyu-money font-semibold text-foreground">
+            {formatMoney(sale.totalAmount)}
+          </span>
         </p>
       </div>
       <div className="border-t pt-4">
@@ -258,22 +266,38 @@ function SaleSuccess({
   );
 }
 
+const RANGE_PRESETS = [
+  { id: "today", label: "Today" },
+  { id: "yesterday", label: "Yesterday" },
+  { id: "7d", label: "7 days" },
+  { id: "month", label: "This month" },
+] as const;
+
+function rangeLabel(range: string, from: string, to: string) {
+  const preset = RANGE_PRESETS.find((p) => p.id === range);
+  if (preset) return preset.label;
+  if (from === to) return from;
+  return `${from} → ${to}`;
+}
+
 export function SalesClient({
   sales,
   medicines,
   todayRevenue,
+  activeRange,
   from,
   to,
 }: {
   sales: Sale[];
   medicines: Medicine[];
   todayRevenue: number;
+  activeRange: string;
   from: string;
   to: string;
 }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [addOpen, setAddOpen] = useState(false);
+  const [customOpen, setCustomOpen] = useState(false);
   const [success, setSuccess] = useState<{
     sale: Sale;
     stockLeft: number;
@@ -281,22 +305,22 @@ export function SalesClient({
   const [, startTransition] = useTransition();
 
   const filteredTotal = sales.reduce((sum, s) => sum + s.totalAmount, 0);
+  const isToday = activeRange === "today";
 
-  function handleFilter(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    const params = new URLSearchParams(searchParams.toString());
-    const f = fd.get("from") as string;
-    const t = fd.get("to") as string;
-    if (f) params.set("from", f);
-    else params.delete("from");
-    if (t) params.set("to", t);
-    else params.delete("to");
-    startTransition(() => router.push(`?${params.toString()}`));
+  function goToRange(range: string) {
+    startTransition(() => router.push(`/sales?range=${range}`));
   }
 
-  function clearFilter() {
-    startTransition(() => router.push("/sales"));
+  function applyCustom(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const f = (fd.get("from") as string) || "";
+    const t = (fd.get("to") as string) || "";
+    const params = new URLSearchParams();
+    if (f) params.set("from", f);
+    if (t) params.set("to", t);
+    setCustomOpen(false);
+    startTransition(() => router.push(`/sales?${params.toString()}`));
   }
 
   function handleSaved(result: { sale: Sale; stockLeft: number }) {
@@ -311,7 +335,7 @@ export function SalesClient({
         <div>
           <h1 className="text-xl font-bold tracking-tight md:text-2xl">Sales</h1>
           <p className="text-muted-foreground text-sm">
-            Record sales and view today&apos;s activity.
+            Record sales and review recent activity.
           </p>
         </div>
         <Button
@@ -334,10 +358,10 @@ export function SalesClient({
       <div className="grid grid-cols-2 gap-3">
         <div className="leyu-metric-card">
           <p className="text-muted-foreground text-xs font-medium">
-            Today&apos;s revenue
+            {isToday ? "Today's revenue" : "Period revenue"}
           </p>
           <p className="leyu-money mt-1 text-xl font-bold md:text-2xl">
-            {formatMoney(todayRevenue)}
+            {formatMoney(isToday ? todayRevenue : filteredTotal)}
           </p>
         </div>
         <div className="leyu-metric-card">
@@ -348,40 +372,60 @@ export function SalesClient({
             {sales.length}
           </p>
           <p className="text-muted-foreground mt-0.5 text-xs">
-            Filtered · {formatMoney(filteredTotal)}
+            {rangeLabel(activeRange, from, to)}
           </p>
         </div>
       </div>
 
-      <form
-        onSubmit={handleFilter}
-        className="flex flex-wrap items-end gap-2"
-      >
-        <div className="space-y-1">
-          <Label className="text-xs">From</Label>
-          <Input name="from" type="date" defaultValue={from} className="h-10" />
+      <div className="flex items-center gap-2">
+        <div
+          className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto pb-0.5"
+          role="group"
+          aria-label="Date range"
+        >
+          {RANGE_PRESETS.map((preset) => {
+            const active = activeRange === preset.id;
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => goToRange(preset.id)}
+                className={cn(
+                  "h-9 shrink-0 rounded-full border px-3 text-xs font-medium transition-colors",
+                  active
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card text-muted-foreground hover:bg-secondary",
+                )}
+              >
+                {preset.label}
+              </button>
+            );
+          })}
         </div>
-        <div className="space-y-1">
-          <Label className="text-xs">To</Label>
-          <Input name="to" type="date" defaultValue={to} className="h-10" />
-        </div>
-        <Button type="submit" variant="outline" className="h-10 rounded-xl">
-          Filter
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className={cn(
+            "size-9 shrink-0 rounded-full",
+            activeRange === "custom" && "border-primary text-primary",
+          )}
+          aria-label="Choose custom dates"
+          onClick={() => setCustomOpen(true)}
+        >
+          <CalendarDays className="size-4" />
         </Button>
-        {(from || to) && (
-          <Button type="button" variant="ghost" className="h-10" onClick={clearFilter}>
-            Clear
-          </Button>
-        )}
-      </form>
+      </div>
 
       <div>
-        <h2 className="mb-2 text-sm font-semibold">Recent sales</h2>
+        <h2 className="mb-2 text-sm font-semibold">
+          {isToday ? "Today's sales" : "Sales in this period"}
+        </h2>
 
         <div className="space-y-2 md:hidden">
           {sales.length === 0 ? (
             <p className="text-muted-foreground py-8 text-center text-sm">
-              No sales yet this shift — record the first one.
+              No sales in this period — record one to get started.
             </p>
           ) : (
             sales.map((sale) => (
@@ -398,7 +442,7 @@ export function SalesClient({
                     {sale.note ? ` · ${sale.note}` : ""}
                   </p>
                 </div>
-                <p className="leyu-money text-primary shrink-0 text-sm font-bold">
+                <p className="leyu-money shrink-0 text-sm font-bold">
                   {formatMoney(sale.totalAmount)}
                 </p>
               </div>
@@ -425,7 +469,7 @@ export function SalesClient({
                     colSpan={6}
                     className="text-muted-foreground py-8 text-center"
                   >
-                    No sales yet this shift — record the first one.
+                    No sales in this period — record one to get started.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -456,6 +500,51 @@ export function SalesClient({
           </Table>
         </div>
       </div>
+
+      <Dialog open={customOpen} onOpenChange={setCustomOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Custom dates</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={applyCustom} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">From</Label>
+                <Input
+                  name="from"
+                  type="date"
+                  defaultValue={from}
+                  className="h-11"
+                  required
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">To</Label>
+                <Input
+                  name="to"
+                  type="date"
+                  defaultValue={to}
+                  className="h-11"
+                  required
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11"
+                onClick={() => setCustomOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" className="h-11">
+                Apply
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="max-w-md">
