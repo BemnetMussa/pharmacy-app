@@ -11,6 +11,9 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     "node_modules/**",
+    // shadcn/ui primitives — generated; do not hand-edit or lint-fight
+    "src/components/ui/**",
+    "src/generated/**",
   ]),
 ]);
 

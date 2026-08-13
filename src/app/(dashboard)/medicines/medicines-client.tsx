@@ -42,6 +42,11 @@ import {
   deleteMedicine,
 } from "@/features/medicines/actions";
 import { medicineSchema } from "@/features/medicines/validators";
+import {
+  getStockStatus,
+  LOW_STOCK_THRESHOLD,
+  type StockStatus,
+} from "@/features/medicines/stock";
 import type { MedicineInput } from "@/features/medicines/validators";
 import { cn, formatMoney } from "@/lib/utils";
 import { Plus, Search } from "lucide-react";
@@ -57,16 +62,6 @@ type Medicine = {
   expiryDate: Date | null;
   description: string | null;
 };
-
-const LOW_STOCK_THRESHOLD = 10;
-
-type StockStatus = "OK" | "Low" | "Out";
-
-function getStockStatus(quantity: number): StockStatus {
-  if (quantity <= 0) return "Out";
-  if (quantity <= LOW_STOCK_THRESHOLD) return "Low";
-  return "OK";
-}
 
 function StockPill({ status }: { status: StockStatus }) {
   return (
