@@ -226,26 +226,29 @@ function MedicineForm({
         </div>
       </div>
 
-      <div className="space-y-4 pt-2">
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
+      <div className="border-border/60 mt-2 space-y-4 border-t pt-4">
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 w-full"
+            onClick={onCancel}
+          >
             Cancel
           </Button>
-          <Button type="submit" className="h-11" disabled={pending}>
+          <Button type="submit" className="h-11 w-full" disabled={pending}>
             {pending ? "Saving…" : initial ? "Save Changes" : "Add Medicine"}
           </Button>
         </div>
 
         {initial && onRequestDelete ? (
-          <div className="border-border/60 border-t pt-4">
-            <button
-              type="button"
-              onClick={onRequestDelete}
-              className="text-muted-foreground hover:text-destructive text-xs underline-offset-2 hover:underline"
-            >
-              Delete this medicine
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={onRequestDelete}
+            className="text-muted-foreground hover:text-destructive text-xs underline-offset-2 hover:underline"
+          >
+            Delete this medicine
+          </button>
         ) : null}
       </div>
     </form>
@@ -444,11 +447,6 @@ export function MedicinesClient({
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
                   <StockPill status={status} />
-                  {isAdmin && (
-                    <span className="text-muted-foreground text-[11px]">
-                      Tap to edit
-                    </span>
-                  )}
                 </div>
               </button>
             );
