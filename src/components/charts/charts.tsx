@@ -48,18 +48,45 @@ export function RevenueBarChart({
 }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data} margin={{ top: 4, right: 4, left: -18, bottom: 0 }}>
+      <BarChart data={data} margin={{ top: 8, right: 8, left: 8, bottom: 20 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#E8F1FC" vertical={false} />
         <XAxis
           dataKey="date"
           tick={{ fontSize: 10, fill: "#6b7c93" }}
           tickFormatter={(v) =>
-            new Date(v).toLocaleDateString("en", { day: "numeric" })
+            new Date(v).toLocaleDateString("en", {
+              month: "short",
+              day: "numeric",
+            })
           }
           axisLine={false}
           tickLine={false}
           interval="preserveStartEnd"
+          label={{
+            value: "Day",
+            position: "insideBottom",
+            offset: -12,
+            style: { fontSize: 11, fill: "#6b7c93" },
+          }}
         />
-        <YAxis hide />
+        <YAxis
+          tick={{ fontSize: 10, fill: "#6b7c93" }}
+          tickFormatter={(v) => {
+            const n = Number(v);
+            if (n >= 1000) return `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}k`;
+            return String(Math.round(n));
+          }}
+          width={48}
+          axisLine={false}
+          tickLine={false}
+          label={{
+            value: "Revenue (ETB)",
+            angle: -90,
+            position: "insideLeft",
+            offset: 0,
+            style: { fontSize: 11, fill: "#6b7c93", textAnchor: "middle" },
+          }}
+        />
         <Tooltip
           formatter={fmtCurrency}
           labelFormatter={fmtLabel}

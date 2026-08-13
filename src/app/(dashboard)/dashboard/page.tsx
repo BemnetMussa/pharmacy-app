@@ -153,7 +153,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="leyu-surface-card p-4 md:p-6">
-        <div className="mb-4 flex items-center justify-between gap-2">
+        <div className="mb-1 flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold">Revenue · last 30 days</h2>
           <Link
             href="/reports"
@@ -163,12 +163,15 @@ export default async function DashboardPage() {
             <ArrowRight className="size-3" aria-hidden />
           </Link>
         </div>
+        <p className="text-muted-foreground mb-4 text-xs">
+          Up = money earned (ETB) · across = each day
+        </p>
         {dailyRevenue.length === 0 ? (
           <p className="text-muted-foreground py-12 text-center text-sm">
             No sales recorded yet. Start by recording a sale.
           </p>
         ) : (
-          <div className="h-[180px] md:h-[240px]">
+          <div className="h-[200px] md:h-[260px]">
             <RevenueBarChart data={dailyRevenue} />
           </div>
         )}
