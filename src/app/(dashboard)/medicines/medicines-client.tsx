@@ -380,7 +380,7 @@ export function MedicinesClient({
           className={cn(
             "h-10 rounded-full border px-3 text-xs font-medium transition-colors",
             stockFilter === "attention"
-              ? "border-amber-300 bg-amber-50 text-amber-800"
+              ? "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-500/35 dark:bg-amber-500/10 dark:text-amber-100"
               : "border-border bg-card text-muted-foreground",
           )}
         >
@@ -393,7 +393,7 @@ export function MedicinesClient({
           className={cn(
             "h-10 rounded-full border px-3 text-xs font-medium transition-colors",
             stockFilter === "expiring"
-              ? "border-amber-300 bg-amber-50 text-amber-800"
+              ? "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-500/35 dark:bg-amber-500/10 dark:text-amber-100"
               : "border-border bg-card text-muted-foreground",
           )}
         >
@@ -430,8 +430,10 @@ export function MedicinesClient({
                 }}
                 className={cn(
                   "leyu-list-row w-full text-left",
-                  status === "Low" && "border-amber-200 bg-amber-50/40",
-                  status === "Out" && "border-red-200 bg-red-50/40",
+                  status === "Low" &&
+                    "border-amber-200 bg-amber-50/40 dark:border-amber-500/25 dark:bg-amber-500/[0.07]",
+                  status === "Out" &&
+                    "border-red-200 bg-red-50/40 dark:border-red-500/25 dark:bg-red-500/[0.07]",
                   isAdmin && "hover:border-primary/30 active:bg-secondary/60",
                   !isAdmin && "cursor-default",
                 )}

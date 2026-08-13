@@ -34,30 +34,32 @@ function MetricCard({
   const className = cn(
     "block rounded-2xl border-0 p-4 shadow-none transition-colors",
     tone === "default" && "bg-secondary",
-    tone === "warning" && "bg-amber-50 hover:bg-amber-100/80",
-    tone === "danger" && "bg-red-50 hover:bg-red-100/80",
+    tone === "warning" &&
+      "bg-amber-50 hover:bg-amber-100/80 dark:bg-amber-500/10 dark:hover:bg-amber-500/15",
+    tone === "danger" &&
+      "bg-red-50 hover:bg-red-100/80 dark:bg-red-500/10 dark:hover:bg-red-500/15",
     href && "cursor-pointer",
   );
 
   const labelClass =
     tone === "warning"
-      ? "text-xs font-medium text-amber-800"
+      ? "text-xs font-medium text-amber-800 dark:text-amber-200"
       : tone === "danger"
-        ? "text-xs font-medium text-red-800"
+        ? "text-xs font-medium text-red-800 dark:text-red-200"
         : "text-muted-foreground text-xs font-medium";
 
   const valueClass =
     tone === "warning"
-      ? "leyu-money mt-1 text-2xl font-bold text-amber-900"
+      ? "leyu-money mt-1 text-2xl font-bold text-amber-900 dark:text-amber-50"
       : tone === "danger"
-        ? "leyu-money mt-1 text-2xl font-bold text-red-900"
+        ? "leyu-money mt-1 text-2xl font-bold text-red-900 dark:text-red-50"
         : "leyu-money mt-1 text-2xl font-bold";
 
   const hintClass =
     tone === "warning"
-      ? "mt-1 text-xs text-amber-700"
+      ? "mt-1 text-xs text-amber-700 dark:text-amber-200/80"
       : tone === "danger"
-        ? "mt-1 text-xs text-red-700"
+        ? "mt-1 text-xs text-red-700 dark:text-red-200/80"
         : "text-muted-foreground mt-1 text-xs";
 
   const body = (
