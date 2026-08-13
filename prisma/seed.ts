@@ -12,13 +12,13 @@ const db = new PrismaClient({ adapter });
 
 const seedUsers = [
   {
-    name: "Dr. Amina",
+    name: "Dr. Amina Bekele",
     email: "admin@leyumed.com",
     password: "password123",
     role: "ADMIN" as const,
   },
   {
-    name: "Tigist",
+    name: "Tigist Haile",
     email: "pharmacist@leyumed.com",
     password: "password123",
     role: "PHARMACIST" as const,
@@ -42,12 +42,13 @@ async function main() {
   for (const u of seedUsers) {
     const existing = await db.user.findUnique({ where: { email: u.email } });
     if (existing) {
-      if (existing.role !== u.role) {
-        await db.user.update({
-          where: { id: existing.id },
-          data: { role: u.role },
-        });
-      }
+      await db.user.update({
+        where: { id: existing.id },
+        data: {
+          name: u.name,
+          role: u.role,
+        },
+      });
       continue;
     }
     const res = await auth.api.signUpEmail({
