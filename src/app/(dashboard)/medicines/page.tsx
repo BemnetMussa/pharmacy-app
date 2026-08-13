@@ -18,7 +18,8 @@ export default async function MedicinesPage({
   const params = await searchParams;
   const [session, medicines, categories] = await Promise.all([
     getSession(),
-    getMedicines(params.q, params.category),
+    // Load full (or category) list so search can filter instantly client-side
+    getMedicines(undefined, params.category),
     getMedicineCategories(),
   ]);
   const role = ((session?.user as { role?: Role } | undefined)?.role ??

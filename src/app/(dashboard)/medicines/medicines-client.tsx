@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   Table,
@@ -44,7 +44,7 @@ import {
 import { medicineSchema } from "@/features/medicines/validators";
 import type { MedicineInput } from "@/features/medicines/validators";
 import { cn, formatMoney } from "@/lib/utils";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 
 type Medicine = {
   id: string;
@@ -258,38 +258,35 @@ export function MedicinesClient({
   const [addOpen, setAddOpen] = useState(openAddOnMount);
   const [editMedicine, setEditMedicine] = useState<Medicine | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Medicine | null>(null);
+  const [query, setQuery] = useState(searchQuery);
   const [stockFilter, setStockFilter] = useState<
     "all" | "attention" | "expiring"
   >(initialStockFilter ?? "all");
   const [, startTransition] = useTransition();
 
+  useEffect(() => {
+    setQuery(searchQuery);
+  }, [searchQuery]);
+
   function pushParams(
-    q: string,
     category: string,
     stock: "all" | "attention" | "expiring",
   ) {
     const params = new URLSearchParams();
-    if (q) params.set("q", q);
     if (category) params.set("category", category);
     if (stock !== "all") params.set("stock", stock);
     const qs = params.toString();
-    router.push(qs ? `?${qs}` : "/medicines");
-  }
-
-  function handleSearch(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const q = (new FormData(e.currentTarget).get("q") as string) ?? "";
-    startTransition(() => pushParams(q, selectedCategory, stockFilter));
+    router.push(qs ? `/medicines?${qs}` : "/medicines");
   }
 
   function handleCategoryChange(val: string | null) {
     const cat = !val || val === "all" ? "" : val;
-    startTransition(() => pushParams(searchQuery, cat, stockFilter));
+    startTransition(() => pushParams(cat, stockFilter));
   }
 
   function setStock(next: "all" | "attention" | "expiring") {
     setStockFilter(next);
-    startTransition(() => pushParams(searchQuery, selectedCategory, next));
+    startTransition(() => pushParams(selectedCategory, next));
   }
 
   function handleDelete() {
@@ -304,8 +301,10 @@ export function MedicinesClient({
   const now = new Date();
   const in90 = new Date();
   in90.setDate(in90.getDate() + 90);
+  const q = query.trim().toLowerCase();
 
   const visible = medicines.filter((m) => {
+    if (q && !m.name.toLowerCase().includes(q)) return false;
     if (stockFilter === "attention") {
       return getStockStatus(m.quantity) !== "OK";
     }
@@ -322,17 +321,21 @@ export function MedicinesClient({
 
   return (
     <div className="space-y-4">
-      <form onSubmit={handleSearch} className="flex gap-2">
-        <Input
-          name="q"
-          placeholder="Search medicines…"
-          defaultValue={searchQuery}
-          className="h-11 flex-1 rounded-xl bg-card"
+      <div className="relative">
+        <Search
+          className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+          aria-hidden
         />
-        <Button type="submit" variant="outline" className="h-11 rounded-xl">
-          Search
-        </Button>
-      </form>
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Type a medicine name…"
+          autoComplete="off"
+          autoFocus
+          className="h-12 rounded-xl bg-card pr-3 pl-10 text-base"
+          aria-label="Search medicines"
+        />
+      </div>
 
       <div className="flex flex-wrap items-center gap-2">
         <Select
@@ -393,7 +396,7 @@ export function MedicinesClient({
       <div className="space-y-2 md:hidden">
         {visible.length === 0 ? (
           <p className="text-muted-foreground py-10 text-center text-sm">
-            No medicines found.
+            {q ? `No medicines match “${query.trim()}”.` : "No medicines found."}
           </p>
         ) : (
           visible.map((med) => {
@@ -467,7 +470,7 @@ export function MedicinesClient({
                   colSpan={isAdmin ? 8 : 6}
                   className="text-muted-foreground py-8 text-center"
                 >
-                  No medicines found.
+                  {q ? `No medicines match “${query.trim()}”.` : "No medicines found."}
                 </TableCell>
               </TableRow>
             ) : (
