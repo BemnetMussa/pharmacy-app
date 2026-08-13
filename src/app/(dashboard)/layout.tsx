@@ -4,6 +4,7 @@ import { getSessionRole } from "@/server/authz";
 import { AppShellHeader } from "@/components/layout/app-shell-header";
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
 
 export default async function DashboardLayout({
@@ -24,7 +25,8 @@ export default async function DashboardLayout({
       <div className="flex flex-1">
         <Sidebar role={role} />
         <div className="flex min-w-0 flex-1 flex-col">
-          <div className="hidden items-center justify-end border-b border-border/60 bg-card px-6 py-3 md:flex">
+          <div className="hidden items-center justify-end gap-1 border-b border-border/60 bg-card px-6 py-3 md:flex">
+            <ThemeToggle />
             <UserMenu user={session.user} role={role} />
           </div>
           <main className="flex-1 p-4 pb-28 md:p-6 md:pb-6">{children}</main>

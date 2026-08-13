@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/server/session";
 import type { Role } from "@/server/authz";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 export default async function AuthLayout({
   children,
@@ -15,7 +16,10 @@ export default async function AuthLayout({
   }
 
   return (
-    <div className="bg-background flex min-h-dvh items-center justify-center px-4 py-12">
+    <div className="bg-background relative flex min-h-dvh items-center justify-center px-4 py-12">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       {children}
     </div>
   );

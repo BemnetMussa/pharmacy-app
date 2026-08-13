@@ -34,11 +34,12 @@ const BRAND_PALE = "#C5DAF5";
 const COLORS = [BRAND, BRAND_SOFT, "#4A8DE0", BRAND_PALE, "#0F4A9A", "#A8C8F0"];
 
 const tooltipStyle = {
-  backgroundColor: "white",
-  border: "1px solid #E8F1FC",
+  backgroundColor: "var(--card)",
+  color: "var(--card-foreground)",
+  border: "1px solid var(--border)",
   borderRadius: "12px",
   fontSize: "12px",
-  boxShadow: "0 1px 3px rgb(30 111 217 / 0.08)",
+  boxShadow: "var(--shadow-card)",
 };
 
 export function RevenueBarChart({

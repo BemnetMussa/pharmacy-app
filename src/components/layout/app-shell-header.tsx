@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Pill } from "lucide-react";
+import { ThemeToggle } from "./theme-toggle";
 import { UserMenu } from "./user-menu";
 import type { NavRole } from "./sidebar";
 
@@ -28,7 +29,10 @@ export function AppShellHeader({ role, user }: AppShellHeaderProps) {
         </span>
         <span className="text-base font-semibold tracking-tight">leyuMed</span>
       </Link>
-      <UserMenu user={user} role={role} />
+      <div className="flex items-center gap-1">
+        <ThemeToggle />
+        <UserMenu user={user} role={role} />
+      </div>
     </header>
   );
 }
