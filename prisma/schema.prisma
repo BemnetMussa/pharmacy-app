@@ -98,3 +98,14 @@ model IncomeEntry {
   date        DateTime
   createdAt   DateTime @default(now())
 }
+
+/** Better Auth rate-limit storage (durable across Vercel isolates). */
+model RateLimit {
+  id          String @id @default(cuid())
+  key         String
+  count       Int
+  lastRequest BigInt
+
+  @@unique([key])
+  @@map("rateLimit")
+}

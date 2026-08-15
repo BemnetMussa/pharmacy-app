@@ -107,8 +107,27 @@ export async function deleteMedicine(id: string) {
 
 export async function getLowStockMedicines(threshold = 10) {
   await requireSession();
+  const role = await getSessionRole();
   return db.medicine.findMany({
     where: { quantity: { lte: threshold } },
     orderBy: { quantity: "asc" },
+    ...(role === "ADMIN"
+      ? {}
+      : {
+          select: {
+            id: true,
+            name: true,
+            brandName: true,
+            batchNo: true,
+            category: true,
+            quantity: true,
+            unit: true,
+            unitPrice: true,
+            expiryDate: true,
+            description: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        }),
   });
 }

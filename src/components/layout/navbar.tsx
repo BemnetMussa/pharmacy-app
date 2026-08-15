@@ -61,12 +61,6 @@ export function Navbar({ role }: { role: "ADMIN" | "PHARMACIST" }) {
               >
                 Log in
               </Link>
-              <Link
-                href="/signup"
-                className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-9 items-center rounded-md px-4 text-sm font-medium transition-colors"
-              >
-                Sign up
-              </Link>
             </div>
           )}
         </div>

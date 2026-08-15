@@ -16,7 +16,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import Link from "next/link";
 import type { Role } from "@/server/authz";
 
 export function LoginForm() {
@@ -122,11 +121,8 @@ export function LoginForm() {
           </form>
         </Form>
 
-        <p className="text-center text-sm">
-          Don&apos;t have an account?{" "}
-          <Link href="/signup" className="text-primary hover:underline">
-            Create account
-          </Link>
+        <p className="text-muted-foreground text-center text-sm">
+          Accounts are invite-only. Ask the pharmacy owner if you need access.
         </p>
       </div>
     </div>

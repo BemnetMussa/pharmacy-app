@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+const isoDateString = z
+  .string()
+  .min(1, "Expiry date is required")
+  .refine((value) => !Number.isNaN(Date.parse(value)), {
+    message: "Enter a valid expiry date",
+  });
+
 export const medicineSchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
   brandName: z.string().min(1, "Brand name is required").max(200),
@@ -9,7 +16,7 @@ export const medicineSchema = z.object({
   unit: z.string().min(1, "Unit is required").max(50),
   unitPrice: z.number().positive("Unit price must be positive"),
   costPrice: z.number().positive("Cost price must be positive"),
-  expiryDate: z.string().min(1, "Expiry date is required"),
+  expiryDate: isoDateString,
   description: z.string().max(500).optional().nullable(),
 });
 
