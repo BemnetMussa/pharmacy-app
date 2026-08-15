@@ -64,17 +64,19 @@ model Verification {
 }
 
 model Medicine {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   name        String
+  brandName   String?
+  batchNo     String?
   category    String
   quantity    Int
-  unit        String   @default("unit")
+  unit        String    @default("unit")
   unitPrice   Float
   costPrice   Float
   expiryDate  DateTime?
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   sales       Sale[]
 }
 

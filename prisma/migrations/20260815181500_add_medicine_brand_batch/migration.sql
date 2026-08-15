@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Medicine" ADD COLUMN IF NOT EXISTS "brandName" TEXT;
+ALTER TABLE "Medicine" ADD COLUMN IF NOT EXISTS "batchNo" TEXT;

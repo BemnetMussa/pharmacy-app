@@ -26,16 +26,16 @@ const seedUsers = [
 ];
 
 const medicines = [
-  { name: "Paracetamol 500mg", category: "Painkillers", quantity: 200, unit: "tablet", unitPrice: 0.5, costPrice: 0.2, expiryDate: new Date("2027-06-01") },
-  { name: "Ibuprofen 400mg", category: "Painkillers", quantity: 150, unit: "tablet", unitPrice: 0.75, costPrice: 0.3, expiryDate: new Date("2027-03-15") },
-  { name: "Amoxicillin 250mg", category: "Antibiotics", quantity: 100, unit: "capsule", unitPrice: 1.2, costPrice: 0.55, expiryDate: new Date("2026-12-01") },
-  { name: "Azithromycin 500mg", category: "Antibiotics", quantity: 40, unit: "tablet", unitPrice: 2.5, costPrice: 1.1, expiryDate: new Date("2027-01-20") },
-  { name: "Cetirizine 10mg", category: "Antihistamines", quantity: 220, unit: "tablet", unitPrice: 0.4, costPrice: 0.15, expiryDate: new Date("2028-02-10") },
-  { name: "Omeprazole 20mg", category: "Digestive", quantity: 90, unit: "capsule", unitPrice: 1.0, costPrice: 0.4, expiryDate: new Date("2027-08-30") },
-  { name: "Vitamin C 1000mg", category: "Vitamins", quantity: 180, unit: "tablet", unitPrice: 0.6, costPrice: 0.25, expiryDate: new Date("2028-05-01") },
-  { name: "Cough Syrup 100ml", category: "Syrups", quantity: 30, unit: "bottle", unitPrice: 4.5, costPrice: 2.0, expiryDate: new Date("2026-10-15") },
-  { name: "Insulin Glargine", category: "Diabetes", quantity: 40, unit: "vial", unitPrice: 18.0, costPrice: 11.0, expiryDate: new Date("2026-11-30") },
-  { name: "Metformin 850mg", category: "Diabetes", quantity: 120, unit: "tablet", unitPrice: 0.35, costPrice: 0.12, expiryDate: new Date("2027-09-12") },
+  { name: "Paracetamol 500mg", brandName: "Panadol", batchNo: "PN-2027-061", category: "Painkillers", quantity: 200, unit: "tablet", unitPrice: 0.5, costPrice: 0.2, expiryDate: new Date("2027-06-01") },
+  { name: "Ibuprofen 400mg", brandName: "Brufen", batchNo: "BR-2027-031", category: "Painkillers", quantity: 150, unit: "tablet", unitPrice: 0.75, costPrice: 0.3, expiryDate: new Date("2027-03-15") },
+  { name: "Amoxicillin 250mg", brandName: "Amoxil", batchNo: "AX-2026-121", category: "Antibiotics", quantity: 100, unit: "capsule", unitPrice: 1.2, costPrice: 0.55, expiryDate: new Date("2026-12-01") },
+  { name: "Azithromycin 500mg", brandName: "Zithromax", batchNo: "ZT-2027-012", category: "Antibiotics", quantity: 40, unit: "tablet", unitPrice: 2.5, costPrice: 1.1, expiryDate: new Date("2027-01-20") },
+  { name: "Cetirizine 10mg", brandName: "Zyrtec", batchNo: "ZY-2028-021", category: "Antihistamines", quantity: 220, unit: "tablet", unitPrice: 0.4, costPrice: 0.15, expiryDate: new Date("2028-02-10") },
+  { name: "Omeprazole 20mg", brandName: "Losec", batchNo: "LS-2027-083", category: "Digestive", quantity: 90, unit: "capsule", unitPrice: 1.0, costPrice: 0.4, expiryDate: new Date("2027-08-30") },
+  { name: "Vitamin C 1000mg", brandName: "Redoxon", batchNo: "RX-2028-051", category: "Vitamins", quantity: 180, unit: "tablet", unitPrice: 0.6, costPrice: 0.25, expiryDate: new Date("2028-05-01") },
+  { name: "Cough Syrup 100ml", brandName: "Benylin", batchNo: "BN-2026-101", category: "Syrups", quantity: 30, unit: "bottle", unitPrice: 4.5, costPrice: 2.0, expiryDate: new Date("2026-10-15") },
+  { name: "Insulin Glargine", brandName: "Lantus", batchNo: "LT-2026-113", category: "Diabetes", quantity: 40, unit: "vial", unitPrice: 18.0, costPrice: 11.0, expiryDate: new Date("2026-11-30") },
+  { name: "Metformin 850mg", brandName: "Glucophage", batchNo: "GP-2027-091", category: "Diabetes", quantity: 120, unit: "tablet", unitPrice: 0.35, costPrice: 0.12, expiryDate: new Date("2027-09-12") },
 ];
 
 async function main() {

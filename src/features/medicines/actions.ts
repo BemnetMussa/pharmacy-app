@@ -14,6 +14,8 @@ export async function getMedicines(query?: string, category?: string) {
       : {
           id: true,
           name: true,
+          brandName: true,
+          batchNo: true,
           category: true,
           quantity: true,
           unit: true,
@@ -28,10 +30,11 @@ export async function getMedicines(query?: string, category?: string) {
     where: {
       ...(query
         ? {
-            name: {
-              contains: query,
-              mode: "insensitive" as const,
-            },
+            OR: [
+              { name: { contains: query, mode: "insensitive" as const } },
+              { brandName: { contains: query, mode: "insensitive" as const } },
+              { batchNo: { contains: query, mode: "insensitive" as const } },
+            ],
           }
         : {}),
       ...(category ? { category } : {}),
@@ -57,12 +60,14 @@ export async function createMedicine(input: MedicineInput) {
   const result = await db.medicine.create({
     data: {
       name: data.name,
+      brandName: data.brandName,
+      batchNo: data.batchNo,
       category: data.category,
       quantity: data.quantity,
       unit: data.unit,
       unitPrice: data.unitPrice,
       costPrice: data.costPrice,
-      expiryDate: data.expiryDate ? new Date(data.expiryDate) : null,
+      expiryDate: new Date(data.expiryDate),
       description: data.description ?? null,
     },
   });
@@ -78,12 +83,14 @@ export async function updateMedicine(id: string, input: MedicineInput) {
     where: { id },
     data: {
       name: data.name,
+      brandName: data.brandName,
+      batchNo: data.batchNo,
       category: data.category,
       quantity: data.quantity,
       unit: data.unit,
       unitPrice: data.unitPrice,
       costPrice: data.costPrice,
-      expiryDate: data.expiryDate ? new Date(data.expiryDate) : null,
+      expiryDate: new Date(data.expiryDate),
       description: data.description ?? null,
     },
   });

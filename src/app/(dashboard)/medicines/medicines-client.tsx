@@ -54,6 +54,8 @@ import { Plus, Search } from "lucide-react";
 type Medicine = {
   id: string;
   name: string;
+  brandName: string | null;
+  batchNo: string | null;
   category: string;
   quantity: number;
   unit: string;
@@ -96,12 +98,14 @@ function MedicineForm({
     const fd = new FormData(e.currentTarget);
     const raw = {
       name: fd.get("name") as string,
+      brandName: fd.get("brandName") as string,
+      batchNo: fd.get("batchNo") as string,
       category: fd.get("category") as string,
       quantity: Number(fd.get("quantity")),
       unit: fd.get("unit") as string,
       unitPrice: Number(fd.get("unitPrice")),
       costPrice: Number(fd.get("costPrice")),
-      expiryDate: (fd.get("expiryDate") as string) || null,
+      expiryDate: (fd.get("expiryDate") as string) || "",
       description: (fd.get("description") as string) || null,
     };
 
@@ -131,15 +135,58 @@ function MedicineForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1 sm:col-span-2">
-          <Label htmlFor="name">Name</Label>
-          <Input id="name" name="name" className="h-11" defaultValue={initial?.name ?? ""} />
-          {errors.name && <p className="text-destructive text-xs">{errors.name}</p>}
+          <Label htmlFor="name">Medicine name</Label>
+          <Input
+            id="name"
+            name="name"
+            className="h-11"
+            placeholder="e.g. Amoxicillin 250mg"
+            defaultValue={initial?.name ?? ""}
+          />
+          {errors.name && (
+            <p className="text-destructive text-xs">{errors.name}</p>
+          )}
+        </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="brandName">Brand name</Label>
+          <Input
+            id="brandName"
+            name="brandName"
+            className="h-11"
+            placeholder="e.g. Amoxil"
+            defaultValue={initial?.brandName ?? ""}
+          />
+          {errors.brandName && (
+            <p className="text-destructive text-xs">{errors.brandName}</p>
+          )}
+        </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="batchNo">Batch no.</Label>
+          <Input
+            id="batchNo"
+            name="batchNo"
+            className="h-11"
+            placeholder="e.g. B2026-041"
+            defaultValue={initial?.batchNo ?? ""}
+          />
+          {errors.batchNo && (
+            <p className="text-destructive text-xs">{errors.batchNo}</p>
+          )}
         </div>
 
         <div className="space-y-1">
           <Label htmlFor="category">Category</Label>
-          <Input id="category" name="category" className="h-11" defaultValue={initial?.category ?? ""} />
-          {errors.category && <p className="text-destructive text-xs">{errors.category}</p>}
+          <Input
+            id="category"
+            name="category"
+            className="h-11"
+            defaultValue={initial?.category ?? ""}
+          />
+          {errors.category && (
+            <p className="text-destructive text-xs">{errors.category}</p>
+          )}
         </div>
 
         <div className="space-y-1">
@@ -151,7 +198,9 @@ function MedicineForm({
             placeholder="e.g. tablet, bottle"
             defaultValue={initial?.unit ?? "unit"}
           />
-          {errors.unit && <p className="text-destructive text-xs">{errors.unit}</p>}
+          {errors.unit && (
+            <p className="text-destructive text-xs">{errors.unit}</p>
+          )}
         </div>
 
         <div className="space-y-1">
@@ -164,7 +213,27 @@ function MedicineForm({
             className="h-11"
             defaultValue={initial?.quantity ?? 0}
           />
-          {errors.quantity && <p className="text-destructive text-xs">{errors.quantity}</p>}
+          {errors.quantity && (
+            <p className="text-destructive text-xs">{errors.quantity}</p>
+          )}
+        </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="expiryDate">Expiry date</Label>
+          <Input
+            id="expiryDate"
+            name="expiryDate"
+            type="date"
+            className="h-11"
+            defaultValue={
+              initial?.expiryDate
+                ? new Date(initial.expiryDate).toISOString().split("T")[0]
+                : ""
+            }
+          />
+          {errors.expiryDate && (
+            <p className="text-destructive text-xs">{errors.expiryDate}</p>
+          )}
         </div>
 
         <div className="space-y-1">
@@ -178,7 +247,9 @@ function MedicineForm({
             className="h-11"
             defaultValue={initial?.unitPrice ?? ""}
           />
-          {errors.unitPrice && <p className="text-destructive text-xs">{errors.unitPrice}</p>}
+          {errors.unitPrice && (
+            <p className="text-destructive text-xs">{errors.unitPrice}</p>
+          )}
         </div>
 
         <div className="space-y-1">
@@ -192,22 +263,9 @@ function MedicineForm({
             className="h-11"
             defaultValue={initial?.costPrice ?? ""}
           />
-          {errors.costPrice && <p className="text-destructive text-xs">{errors.costPrice}</p>}
-        </div>
-
-        <div className="space-y-1 sm:col-span-2">
-          <Label htmlFor="expiryDate">Expiry Date</Label>
-          <Input
-            id="expiryDate"
-            name="expiryDate"
-            type="date"
-            className="h-11"
-            defaultValue={
-              initial?.expiryDate
-                ? new Date(initial.expiryDate).toISOString().split("T")[0]
-                : ""
-            }
-          />
+          {errors.costPrice && (
+            <p className="text-destructive text-xs">{errors.costPrice}</p>
+          )}
         </div>
 
         <div className="space-y-1 sm:col-span-2">
@@ -318,7 +376,13 @@ export function MedicinesClient({
   const q = query.trim().toLowerCase();
 
   const visible = medicines.filter((m) => {
-    if (q && !m.name.toLowerCase().includes(q)) return false;
+    if (q) {
+      const haystack = [m.name, m.brandName, m.batchNo, m.category]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
     if (stockFilter === "attention") {
       return getStockStatus(m.quantity) !== "OK";
     }
@@ -435,8 +499,15 @@ export function MedicinesClient({
               >
                 <div className="min-w-0 flex-1 space-y-0.5">
                   <p className="truncate text-sm font-semibold">{med.name}</p>
-                  <p className="text-muted-foreground text-xs">
+                  <p className="text-muted-foreground truncate text-xs">
+                    {med.brandName ? `${med.brandName} · ` : ""}
                     {med.category} · Qty: {med.quantity} {med.unit}
+                  </p>
+                  <p className="text-muted-foreground text-xs">
+                    {med.batchNo ? `Batch ${med.batchNo}` : "No batch"}
+                    {med.expiryDate
+                      ? ` · Exp ${new Date(med.expiryDate).toLocaleDateString("en", { year: "numeric", month: "short", day: "numeric" })}`
+                      : ""}
                   </p>
                   <p className="leyu-money text-sm font-semibold">
                     Sell: {formatMoney(med.unitPrice)}
@@ -457,9 +528,11 @@ export function MedicinesClient({
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
+              <TableHead>Brand</TableHead>
+              <TableHead>Batch</TableHead>
+              <TableHead>Expiry</TableHead>
               <TableHead>Category</TableHead>
               <TableHead className="text-right">Qty</TableHead>
-              <TableHead>Unit</TableHead>
               <TableHead className="text-right">Sale Price</TableHead>
               {isAdmin && <TableHead className="text-right">Cost</TableHead>}
               <TableHead>Status</TableHead>
@@ -470,7 +543,7 @@ export function MedicinesClient({
             {visible.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={isAdmin ? 8 : 6}
+                  colSpan={isAdmin ? 10 : 8}
                   className="text-muted-foreground py-8 text-center"
                 >
                   {q ? `No medicines match “${query.trim()}”.` : "No medicines found."}
@@ -488,11 +561,23 @@ export function MedicinesClient({
                     }}
                   >
                     <TableCell className="font-medium">{med.name}</TableCell>
+                    <TableCell>{med.brandName ?? "—"}</TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {med.batchNo ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {med.expiryDate
+                        ? new Date(med.expiryDate).toLocaleDateString("en", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : "—"}
+                    </TableCell>
                     <TableCell>{med.category}</TableCell>
                     <TableCell className="leyu-money text-right">
-                      {med.quantity}
+                      {med.quantity} {med.unit}
                     </TableCell>
-                    <TableCell>{med.unit}</TableCell>
                     <TableCell className="leyu-money text-right">
                       {formatMoney(med.unitPrice)}
                     </TableCell>

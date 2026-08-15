@@ -53,6 +53,8 @@ describe("signupSchema", () => {
 describe("medicineSchema", () => {
   const valid = {
     name: "Amoxicillin 250mg",
+    brandName: "Amoxil",
+    batchNo: "AX-2026-121",
     category: "Antibiotics",
     quantity: 75,
     unit: "capsule",
@@ -81,10 +83,16 @@ describe("medicineSchema", () => {
     ).toBe(false);
   });
 
-  it("rejects empty name", () => {
-    expect(medicineSchema.safeParse({ ...valid, name: "" }).success).toBe(
+  it("rejects missing brand, batch, or expiry", () => {
+    expect(
+      medicineSchema.safeParse({ ...valid, brandName: "" }).success,
+    ).toBe(false);
+    expect(medicineSchema.safeParse({ ...valid, batchNo: "" }).success).toBe(
       false,
     );
+    expect(
+      medicineSchema.safeParse({ ...valid, expiryDate: "" }).success,
+    ).toBe(false);
   });
 });
 
