@@ -465,7 +465,7 @@ export function MedicinesClient({
             onClick={() => setAddOpen(true)}
           >
             <Plus className="size-4" aria-hidden />
-            Add
+            Add Medicine
           </Button>
         )}
       </div>
@@ -474,7 +474,9 @@ export function MedicinesClient({
       <div className="space-y-2 md:hidden">
         {visible.length === 0 ? (
           <p className="text-muted-foreground py-10 text-center text-sm">
-            {q ? `No medicines match “${query.trim()}”.` : "No medicines found."}
+            {q
+              ? `No medicines match “${query.trim()}”.`
+              : "No medicines yet. Tap Add Medicine and enter each one from your stock list."}
           </p>
         ) : (
           visible.map((med) => {
@@ -546,7 +548,9 @@ export function MedicinesClient({
                   colSpan={isAdmin ? 10 : 8}
                   className="text-muted-foreground py-8 text-center"
                 >
-                  {q ? `No medicines match “${query.trim()}”.` : "No medicines found."}
+                  {q
+                    ? `No medicines match “${query.trim()}”.`
+                    : "No medicines yet. Tap Add Medicine and enter each one from your stock list."}
                 </TableCell>
               </TableRow>
             ) : (

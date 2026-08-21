@@ -1,44 +1,67 @@
 # leyuMed — for Dr. Miraf
 
-**Open the app:** https://pharmacy-app-sigma-peach.vercel.app
+**Open:** https://pharmacy-app-sigma-peach.vercel.app
 
-## Your login
+## Login
 
 - **Email:** `admin@leyumed.com`
 - **Password:** `MirafLeyu1`
 
-Staff login (if someone helps with sales):
+Staff (sales only), if needed:
 
 - **Email:** `pharmacist@leyumed.com`
 - **Password:** `StaffLeyu1`
 
-## What to do first
+---
 
-The list in Medicines is only sample data.  
-**Enter your real medicines yourself** from your spreadsheet or paper.
+## First job: put your medicines in
 
-1. Open **Medicines**
-2. Add each medicine: name, brand, batch, quantity, prices, expiry
-3. When the list matches your stock, you are ready
+The list starts **empty**. That is correct.  
+Add each medicine from your **spreadsheet or paper** — one by one.
 
-You do this once (then update when stock changes). There is no automatic import.
+### How to add one medicine
 
-## Every day
+1. Tap **Medicines** (left menu, or menu on phone)
+2. Tap **Add Medicine**
+3. Fill in from your paper (same names as on the form):
 
-1. Log in
-2. When you sell something → open **Sales** → record the sale  
-   (stock goes down by itself)
-3. When new stock arrives → open **Medicines** → update quantity
-4. To see how the shop is doing → open **Reports** (you only)
-5. When finished → tap your name → **Log out**
+   | On the form | What to write |
+   | --- | --- |
+   | Medicine name | e.g. Paracetamol 500mg |
+   | Brand name | Brand on the pack |
+   | Batch no. | Batch on the pack |
+   | Category | e.g. Antibiotics, Painkillers |
+   | Quantity | How many you have now |
+   | Unit | tablet / capsule / bottle / vial… |
+   | Sale Price (ETB) | What customers pay |
+   | Cost Price (ETB) | What you paid (only you see this) |
+   | Expiry date | Date on the pack |
 
-## On your phone
+4. Tap **Add Medicine** at the bottom to save
+5. Repeat for the next row on your paper until everything is in
 
-Open the link in the browser, then:
+Tip: do a few today, finish the rest when you have time. You can edit anytime.
 
-- **Android:** menu → **Install app** or **Add to Home screen**
-- **iPhone:** Share → **Add to Home Screen**
+---
 
-## Need help?
+## After that — every day
 
-Message Bemnet. New staff accounts cannot sign up alone — he adds them.
+1. **Sold something?** → **Sales** → add the sale (stock goes down by itself)
+2. **New stock arrived?** → **Medicines** → open the medicine → update quantity
+3. **Want totals / reports?** → **Reports** (you only)
+4. **Done for now?** → your name → **Log out**
+
+---
+
+## Phone
+
+Open the link, then:
+
+- **Android:** menu → Install app / Add to Home screen  
+- **iPhone:** Share → Add to Home Screen  
+
+---
+
+## Help
+
+Message Bemnet. New staff cannot sign up alone — he adds them.
