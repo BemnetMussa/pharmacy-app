@@ -12,15 +12,16 @@ const db = new PrismaClient({ adapter });
 
 const seedUsers = [
   {
-    name: "Dr. Amina Bekele",
+    name: "Dr. Miraf Mussa",
     email: "admin@leyumed.com",
-    password: "password123",
+    // Local/dev only — production passwords are set during handover, not by re-seeding.
+    password: process.env.SEED_ADMIN_PASSWORD ?? "MirafLeyu1",
     role: "ADMIN" as const,
   },
   {
     name: "Tigist Haile",
     email: "pharmacist@leyumed.com",
-    password: "password123",
+    password: process.env.SEED_PHARMACIST_PASSWORD ?? "StaffLeyu1",
     role: "PHARMACIST" as const,
   },
 ];
@@ -39,6 +40,12 @@ const medicines = [
 ];
 
 async function main() {
+  if (process.env.ALLOW_DEMO_SEED !== "true") {
+    throw new Error(
+      "Refusing to seed: set ALLOW_DEMO_SEED=true to wipe medicines/sales/income (never on production).",
+    );
+  }
+
   for (const u of seedUsers) {
     const existing = await db.user.findUnique({ where: { email: u.email } });
     if (existing) {
@@ -127,7 +134,9 @@ async function main() {
   console.log(
     `Seeded ${created.length} medicines, ${saleCount} sales (stock decremented), ${incomeEntries.length} income entries`,
   );
-  console.log("Logins: admin@leyumed.com / pharmacist@leyumed.com — password123");
+  console.log(
+    "Logins: admin@leyumed.com / pharmacist@leyumed.com (passwords from SEED_* or defaults)",
+  );
 }
 
 main()
